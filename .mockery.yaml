@@ -1,0 +1,13 @@
+with-expecter: true
+all: true
+recursive: true
+packageprefix: mock
+testonly: false
+dir: mocks/{{ replaceAll .InterfaceDirRelative "internal" "internal_" }}
+mockname: "{{.InterfaceName}}"
+outpkg: "mock{{.PackageName}}"
+filename: "{{.InterfaceName}}.go"
+packages:
+  github.com/jkaveri/goflexstore:
+    config:
+      recursive: true

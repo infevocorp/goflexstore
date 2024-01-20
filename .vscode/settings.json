@@ -1,0 +1,14 @@
+{
+    "go.lintTool": "golangci-lint",
+    "go.lintFlags": [
+        "--fast",
+        "--skip-dirs=vendor"
+    ],
+    "go.useLanguageServer": true,
+    "go.formatFlags": [],
+    "gopls": {
+        "formatting.gofumpt": true,
+        "formatting.local": "github.com/jkaveri/goflexstore",
+        "ui.documentation.hoverKind": "FullDocumentation"
+    }
+}
