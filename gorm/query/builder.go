@@ -1,7 +1,10 @@
 package gormquery
 
 import (
+	"strings"
+
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/jkaveri/goflexstore/query"
 )
@@ -15,9 +18,13 @@ func NewBuilder(options ...Option) *ScopeBuilder {
 	}
 
 	s.Registry = ScopeBuilderRegistry{
-		"filter":   s.Filter,
-		"or":       s.OR,
-		"paginate": s.Paginate,
+		query.TypeFilter:   s.Filter,
+		query.TypeOR:       s.OR,
+		query.TypePaginate: s.Paginate,
+		query.TypeGroupBy:  s.GroupBy,
+		query.TypeSelect:   s.Select,
+		query.TypeOrderBy:  s.OrderBy,
+		query.TypePreload:  s.Preload,
 	}
 
 	for _, option := range options {
@@ -49,14 +56,11 @@ func (b *ScopeBuilder) Filter(param query.Param) ScopeFunc {
 	p := param.(query.FilterParam)
 
 	// run custom filter
-	if builder, ok := b.CustomFilters[p.FieldName]; ok {
+	if builder, ok := b.CustomFilters[p.Name]; ok {
 		return builder(param)
 	}
 
-	col, ok := b.FieldToColMap[p.FieldName]
-	if !ok {
-		col = p.FieldName
-	}
+	col := b.getColName(p.Name)
 
 	return func(tx *gorm.DB) *gorm.DB {
 		return tx.Where(buildWhere(col, p.Operator, p.Value))
@@ -72,10 +76,7 @@ func (b *ScopeBuilder) OR(param query.Param) ScopeFunc {
 		})
 
 		for i, filter := range p.Params {
-			col, ok := b.FieldToColMap[filter.FieldName]
-			if !ok {
-				col = filter.FieldName
-			}
+			col := b.getColName(filter.Name)
 
 			if i == 0 {
 				db = db.Where(buildWhere(col, filter.Operator, filter.Value))
@@ -94,4 +95,89 @@ func (b *ScopeBuilder) Paginate(param query.Param) ScopeFunc {
 	return func(tx *gorm.DB) *gorm.DB {
 		return tx.Offset(p.Offset).Limit(p.Limit)
 	}
+}
+
+func (b *ScopeBuilder) GroupBy(param query.Param) ScopeFunc {
+	p := param.(query.GroupByParam)
+
+	return func(tx *gorm.DB) *gorm.DB {
+		cols := make([]string, len(p.Names))
+
+		for i, name := range p.Names {
+			cols[i] = b.getColName(name)
+		}
+
+		groupBy := strings.Join(cols, ", ")
+
+		if p.Option != "" {
+			groupBy = groupBy + " " + p.Option
+		}
+
+		tx = tx.Group(groupBy)
+
+		if len(p.Having) > 0 {
+			for _, having := range p.Having {
+				tx = tx.Having(buildWhere(
+					b.getColName(having.Name),
+					having.Operator,
+					having.Value,
+				))
+			}
+		}
+
+		return tx
+	}
+}
+
+func (b *ScopeBuilder) Select(param query.Param) ScopeFunc {
+	p := param.(query.SelectParam)
+
+	return func(tx *gorm.DB) *gorm.DB {
+		cols := make([]string, len(p.Names))
+
+		for i, name := range p.Names {
+			cols[i] = b.getColName(name)
+		}
+
+		return tx.Select(cols)
+	}
+}
+
+func (b *ScopeBuilder) OrderBy(param query.Param) ScopeFunc {
+	p := param.(query.OrderByParam)
+
+	return func(tx *gorm.DB) *gorm.DB {
+		col := b.getColName(p.Name)
+
+		return tx.Order(clause.OrderByColumn{
+			Column: clause.Column{Name: col},
+			Desc:   p.Desc,
+		})
+	}
+}
+
+func (b *ScopeBuilder) Preload(param query.Param) ScopeFunc {
+	p := param.(query.PreloadParam)
+
+	return func(tx *gorm.DB) *gorm.DB {
+		tx = tx.Preload(p.Name)
+
+		if len(p.Params) > 0 {
+			for _, param := range p.Params {
+				if builder, ok := b.Registry[param.ParamType()]; ok {
+					tx = builder(param)(tx)
+				}
+			}
+		}
+
+		return tx
+	}
+}
+
+func (b *ScopeBuilder) getColName(name string) string {
+	if col, ok := b.FieldToColMap[name]; ok {
+		return col
+	}
+
+	return name
 }

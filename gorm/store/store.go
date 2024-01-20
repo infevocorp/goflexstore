@@ -9,6 +9,7 @@ import (
 	"github.com/jkaveri/goflexstore/converter"
 	gormopscope "github.com/jkaveri/goflexstore/gorm/opscope"
 	gormquery "github.com/jkaveri/goflexstore/gorm/query"
+	gormutils "github.com/jkaveri/goflexstore/gorm/utils"
 	"github.com/jkaveri/goflexstore/query"
 	"github.com/jkaveri/goflexstore/store"
 )
@@ -34,7 +35,7 @@ func New[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable](
 	if s.ScopeBuilder == nil {
 		s.ScopeBuilder = gormquery.NewBuilder(
 			gormquery.WithFieldToColMap(
-				FieldToColMap(new(DTO)),
+				gormutils.FieldToColMap(new(DTO)),
 			),
 		)
 	}

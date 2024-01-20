@@ -57,7 +57,7 @@ func operatorToString(op query.Operator) string {
 	case query.EQ:
 		return "="
 	case query.NEQ:
-		return "!="
+		return "<>"
 	case query.GT:
 		return ">"
 	case query.GTE:
