@@ -11,18 +11,18 @@ import (
 func Test_WithOperator(t *testing.T) {
 	ageFilter := query.Filter("age", 10)
 	assert.Equal(t, query.FilterParam{
-		FieldName: "age",
-		Operator:  query.EQ,
-		Value:     10,
+		Name:     "age",
+		Operator: query.EQ,
+		Value:    10,
 	}, ageFilter)
 
 	t.Run("EQ", func(t *testing.T) {
 		param := ageFilter.WithOP(query.GT)
 
 		assert.Equal(t, query.FilterParam{
-			FieldName: "age",
-			Operator:  query.GT,
-			Value:     10,
+			Name:     "age",
+			Operator: query.GT,
+			Value:    10,
 		}, param)
 	})
 
@@ -30,9 +30,9 @@ func Test_WithOperator(t *testing.T) {
 		param := ageFilter.WithOP(query.LTE)
 
 		assert.Equal(t, query.FilterParam{
-			FieldName: "age",
-			Operator:  query.LTE,
-			Value:     10,
+			Name:     "age",
+			Operator: query.LTE,
+			Value:    10,
 		}, param)
 	})
 }
@@ -42,9 +42,9 @@ func Test_Filter(t *testing.T) {
 		param := query.Filter("name", "john")
 
 		assert.Equal(t, query.FilterParam{
-			FieldName: "name",
-			Operator:  query.EQ,
-			Value:     "john",
+			Name:     "name",
+			Operator: query.EQ,
+			Value:    "john",
 		}, param)
 	})
 }

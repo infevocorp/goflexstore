@@ -9,11 +9,34 @@ import (
 )
 
 func Test_GroupBy(t *testing.T) {
-	g := query.GroupBy("a")
-	assert.Equal(t, query.GroupByParam{Name: "a"}, g)
-}
+	t.Run("should-create-group-by-param", func(t *testing.T) {
+		g := query.GroupBy("a")
+		assert.Equal(t, query.GroupByParam{Names: []string{"a"}}, g)
+	})
 
-func Test_GroupByOption(t *testing.T) {
-	g := query.GroupByOption("b")
-	assert.Equal(t, query.GroupByOptionParam{Option: "b"}, g)
+	t.Run("should-create-group-by-param-with-option", func(t *testing.T) {
+		a := query.GroupBy("a")
+		b := a.WithOption("option")
+
+		assert.NotEqual(t, a, b)
+
+		assert.Equal(t, query.GroupByParam{
+			Names:  []string{"a"},
+			Option: "option",
+		}, b)
+	})
+
+	t.Run("should-create-group-by-param-with-having", func(t *testing.T) {
+		a := query.GroupBy("a")
+		b := a.WithHaving(
+			query.Filter("a", 1),
+		)
+
+		assert.NotEqual(t, a, b)
+
+		assert.Equal(t, query.GroupByParam{
+			Names:  []string{"a"},
+			Having: []query.FilterParam{query.Filter("a", 1)},
+		}, b)
+	})
 }

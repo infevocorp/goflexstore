@@ -13,7 +13,7 @@ func Test_Select(t *testing.T) {
 
 	assert.Equal(t,
 		query.SelectParam{
-			Fields: []string{"id", "name"},
+			Names: []string{"id", "name"},
 		},
 		p,
 	)

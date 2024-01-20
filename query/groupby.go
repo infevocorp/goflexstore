@@ -1,13 +1,34 @@
 package query
 
 // GroupByParam group by param, it is used to specify the field to group data when querying from store.
+//
+// Notes: this can make your code depends tightly on database, so use it carefully.
 type GroupByParam struct {
-	Name string
+	Names  []string
+	Option string
+	Having []FilterParam
 }
 
-// ParamType returns `group_by`
+// ParamType returns `groupby`
 func (p GroupByParam) ParamType() string {
-	return "group_by"
+	return TypeGroupBy
+}
+
+// WithOption returns a new GroupByParam with the given option.
+func (p GroupByParam) WithOption(option string) GroupByParam {
+	return GroupByParam{
+		Names:  p.Names,
+		Option: option,
+	}
+}
+
+// WithHaving returns a new GroupByParam with the given having.
+func (p GroupByParam) WithHaving(params ...FilterParam) GroupByParam {
+	return GroupByParam{
+		Names:  p.Names,
+		Having: params,
+		Option: p.Option,
+	}
 }
 
 // GroupBy returns a new GroupByParam with the given field name.
@@ -18,33 +39,8 @@ func (p GroupByParam) ParamType() string {
 //		query.Filter("Birthday", time.Parse("2000-01-01", "2006-01-02")).WithOP(query.GT),
 //		query.GroupBy("Birthday"),
 //	)
-func GroupBy(name string) GroupByParam {
+func GroupBy(names ...string) GroupByParam {
 	return GroupByParam{
-		Name: name,
-	}
-}
-
-// GroupByOptionParam group by option param, it is used to specify the option of group by when querying from store.
-type GroupByOptionParam struct {
-	Option string
-}
-
-// GetName returns `group_by_option`
-func (p GroupByOptionParam) GetName() string {
-	return "group_by_option"
-}
-
-// GroupByOption returns a new GroupByOptionParam with the given option.
-//
-// Example:
-//
-//	query.NewParams(
-//		query.Filter("Birthday", time.Parse("2000-01-01", "2006-01-02")).WithOP(query.GT),
-//		query.GroupBy("Birthday"),
-//		query.GroupByOption("WITH ROLLUP"),
-//	)
-func GroupByOption(option string) GroupByOptionParam {
-	return GroupByOptionParam{
-		Option: option,
+		Names: names,
 	}
 }

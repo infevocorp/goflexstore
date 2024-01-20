@@ -3,13 +3,13 @@ package query
 // PreloadParam set the reference field to be preloaded when querying from store.
 // we can specify the Params for preloading
 type PreloadParam struct {
-	Preload string
-	Params  []Param
+	Name   string
+	Params []Param
 }
 
 // GetName returns `preload`
-func (p PreloadParam) GetName() string {
-	return "preload"
+func (p PreloadParam) ParamType() string {
+	return TypePreload
 }
 
 // Preload returns a PreloadParam with the given reference field name.
@@ -34,7 +34,7 @@ func (p PreloadParam) GetName() string {
 //	)
 func Preload(preload string, params ...Param) PreloadParam {
 	return PreloadParam{
-		Preload: preload,
-		Params:  params,
+		Name:   preload,
+		Params: params,
 	}
 }

@@ -12,15 +12,15 @@ func Test_Preload_Test(t *testing.T) {
 	t.Run("preload", func(t *testing.T) {
 		a := query.Preload("User")
 		assert.Equal(t, query.PreloadParam{
-			Preload: "User",
-			Params:  nil,
+			Name:   "User",
+			Params: nil,
 		}, a)
 	})
 
 	t.Run("preload-with-params", func(t *testing.T) {
 		a := query.Preload("Comments", query.Filter("disabled", false))
 		assert.Equal(t, query.PreloadParam{
-			Preload: "Comments",
+			Name: "Comments",
 			Params: []query.Param{
 				query.Filter("disabled", false),
 			},

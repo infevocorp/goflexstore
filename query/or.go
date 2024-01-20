@@ -11,7 +11,7 @@ type ORParam struct {
 
 // ParamType returns `or`
 func (p ORParam) ParamType() string {
-	return "or"
+	return TypeOR
 }
 
 // OR returns a ORParam

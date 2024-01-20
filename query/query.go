@@ -55,7 +55,7 @@ func NewParams(params ...Param) Params {
 
 	for i, param := range params {
 		if param.ParamType() == "filter" {
-			cachedFilter[param.(FilterParam).FieldName] = i
+			cachedFilter[param.(FilterParam).Name] = i
 		}
 	}
 

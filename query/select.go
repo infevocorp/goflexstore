@@ -2,12 +2,12 @@ package query
 
 // SelectParam specifies the fields to be selected in the query result.
 type SelectParam struct {
-	Fields []string
+	Names []string
 }
 
-// GetName returns the name of the param
-func (p SelectParam) GetName() string {
-	return "select"
+// ParamType returns the name of the param
+func (p SelectParam) ParamType() string {
+	return TypeSelect
 }
 
 // Select returns a SelectParam
@@ -19,6 +19,6 @@ func (p SelectParam) GetName() string {
 //	)
 func Select(fields ...string) SelectParam {
 	return SelectParam{
-		Fields: fields,
+		Names: fields,
 	}
 }

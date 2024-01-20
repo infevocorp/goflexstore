@@ -7,9 +7,9 @@ type OrderByParam struct {
 	Desc bool
 }
 
-// GetName returns `orderby`
-func (p OrderByParam) GetName() string {
-	return "orderby"
+// ParamType returns `orderby`
+func (p OrderByParam) ParamType() string {
+	return TypeOrderBy
 }
 
 // OrderBy returns a new OrderByParam with the given field name and order by desc or asc.

@@ -8,7 +8,7 @@ type PaginateParam struct {
 
 // ParamType returns `paginate`
 func (p PaginateParam) ParamType() string {
-	return "paginate"
+	return TypePaginate
 }
 
 // Paginate returns a PaginateParam
