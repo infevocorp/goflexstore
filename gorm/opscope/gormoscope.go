@@ -40,6 +40,8 @@ func NewReadTransactionScope(name string, rootTx *gorm.DB) *TransactionScope {
 // `rootTx` root *gorm.DB to start new session with configuration: NewDB, SkipDefaultTransaction, DisableNestedTransaction
 //
 // `txOptions` is the transaction options
+//
+//nolint:revive
 func NewTransactionScope(name string, rootTx *gorm.DB, txOptions *sql.TxOptions) *TransactionScope {
 	return &TransactionScope{
 		Name: name,
