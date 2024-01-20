@@ -4,17 +4,17 @@ Set of interfaces to implement your data layer more flexibly in Golang.
 
 ## Features
 
-[x] Query
-    [x] True flexible and indepent Store interfaces
-[x] Operation Scope
-    [x] Transaction management with Operation Scope interface
-    [] Metric operation scope
-    [] Tracing operation scope
-[x] Implementation
-    [x] GORM
-    [] bun?
-    [] ..?
-[] Cache store, auto cache with simple api like `query.WithCacheKey("abc")`
+- [x] Query
+  - [x] True flexible and indepent Store interfaces
+- [x] Operation Scope
+  - [x] Transaction management with Operation Scope interface
+  - [ ] Metric operation scope
+  - [ ] Tracing operation scope
+- [x] Implementation
+  - [x] GORM
+  - [ ] bun?
+  - [ ] ..?
+- [ ] Cache store, auto cache with simple api like `query.WithCacheKey("abc")`
 
 ## Store
 
