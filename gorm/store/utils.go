@@ -14,6 +14,19 @@ func defaultValue[T comparable](val T, defaultVal T) T {
 	return val
 }
 
+// FieldToColMap create map of struct's field name to column from a dto that has gorm tags
+// Example:
+//
+//	type User struct {
+//		ID        int64     `gorm:"column:id"`
+//		FirstName string    `gorm:"column:first_name"`
+//		LastName  string    `gorm:"column:last_name"`
+//	}
+//
+//	index := FieldToColMap(User{})
+//	fmt.Println(index)
+//	// Output
+//	// map[FirstName:first_name ID:id LastName:last_name]
 func FieldToColMap(dto any) map[string]string {
 	var (
 		dtoTypeOf = reflect.TypeOf(dto)

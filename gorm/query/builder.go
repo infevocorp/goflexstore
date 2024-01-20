@@ -6,6 +6,7 @@ import (
 	"github.com/jkaveri/goflexstore/query"
 )
 
+// NewBuilder creates new scope builder
 func NewBuilder(options ...Option) *ScopeBuilder {
 	s := &ScopeBuilder{
 		FieldToColMap: make(map[string]string),

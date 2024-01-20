@@ -18,12 +18,14 @@ type scopeValue struct {
 	level int16
 }
 
+// NewWriteTransactionScope creates new write transaction scope
 func NewWriteTransactionScope(name string, rootTx *gorm.DB) *TransactionScope {
 	return NewTransactionScope(name, rootTx, &sql.TxOptions{
 		Isolation: sql.LevelSerializable,
 	})
 }
 
+// NewReadTransactionScope creates new read only transaction scope
 func NewReadTransactionScope(name string, rootTx *gorm.DB) *TransactionScope {
 	return NewTransactionScope(name, rootTx, &sql.TxOptions{
 		Isolation: sql.LevelReadCommitted,
@@ -35,7 +37,7 @@ func NewReadTransactionScope(name string, rootTx *gorm.DB) *TransactionScope {
 //
 // `name` is the name of the transaction scope, it will be used as context key
 //
-// `rootTx` is used to start new session with configuration: NewDB, SkipDefaultTransaction, DisableNestedTransaction
+// `rootTx` root *gorm.DB to start new session with configuration: NewDB, SkipDefaultTransaction, DisableNestedTransaction
 //
 // `txOptions` is the transaction options
 func NewTransactionScope(name string, rootTx *gorm.DB, txOptions *sql.TxOptions) *TransactionScope {
@@ -57,6 +59,7 @@ type TransactionScope struct {
 	TxOptions *sql.TxOptions
 }
 
+// Begin begins the transaction scope
 func (s *TransactionScope) Begin(ctx context.Context) (context.Context, error) {
 	scopeVal := s.getScopeValue(ctx)
 
@@ -78,6 +81,7 @@ func (s *TransactionScope) Begin(ctx context.Context) (context.Context, error) {
 	return s.setScopeValue(ctx, scopeVal), nil
 }
 
+// End ends the transaction scope
 func (s *TransactionScope) End(ctx context.Context, err error) error {
 	if errors.Is(err, errBeginTx) {
 		return nil
@@ -108,6 +112,7 @@ func (s *TransactionScope) End(ctx context.Context, err error) error {
 	return nil
 }
 
+// Tx returns current transaction in context if exists, otherwise returns root transaction
 func (s *TransactionScope) Tx(ctx context.Context) *gorm.DB {
 	sv := s.getScopeValue(ctx)
 	if sv != nil {
@@ -117,6 +122,7 @@ func (s *TransactionScope) Tx(ctx context.Context) *gorm.DB {
 	return s.RootTx
 }
 
+// EndWithRecover ends the transaction scope with recovered error
 func (s *TransactionScope) EndWithRecover(ctx context.Context, errPtr *error) {
 	if errPtr == nil {
 		panic("err pointer cannot be nil")

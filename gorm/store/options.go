@@ -6,8 +6,10 @@ import (
 	"github.com/jkaveri/goflexstore/store"
 )
 
+// Option is a function that modifies the store
 type Option[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable] func(*Store[Entity, DTO, ID])
 
+// WithBatchSize sets the batch size
 func WithBatchSize[
 	Entity store.Entity[ID],
 	DTO store.Entity[ID],
@@ -20,6 +22,7 @@ func WithBatchSize[
 	}
 }
 
+// WithConverter sets the converter
 func WithConverter[
 	Entity store.Entity[ID],
 	DTO store.Entity[ID],
@@ -32,6 +35,7 @@ func WithConverter[
 	}
 }
 
+// WithScopeBuilderOption sets the scope builder options
 func WithScopeBuilderOption[
 	Entity store.Entity[ID],
 	DTO store.Entity[ID],

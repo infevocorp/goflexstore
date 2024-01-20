@@ -55,7 +55,7 @@ type ArticleRepo struct {
 }
 
 func (r *ArticleRepo) ListByTag(ctx context.Context, tag string) ([]model.Article, error) {
-    var articles []dao.Article
+    var articles []dto.Article
 
     if err := r.db.
         Where("id IN (SELECT article_id FROM article_tags WHERE tag = ?)", tag).
@@ -67,7 +67,7 @@ func (r *ArticleRepo) ListByTag(ctx context.Context, tag string) ([]model.Articl
 }
 
 func (r *ArticleRepo) ListByTagAndAuthor(ctx context.Context, authorId int64, tag string) ([]model.Article, error) {
-     var articles []dao.Article
+     var articles []dto.Article
 
     if err := r.db.
         Where("author_id = ?", authorId).

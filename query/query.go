@@ -66,7 +66,7 @@ func NewParams(params ...Param) Params {
 }
 
 // FilterGetter create a func to get FilterParam from Params with given name.
-func FilterGetter[T comparable](name string) func(Params) (FilterParam, bool) {
+func FilterGetter(name string) func(Params) (FilterParam, bool) {
 	return func(params Params) (FilterParam, bool) {
 		return params.GetFilter(name)
 	}

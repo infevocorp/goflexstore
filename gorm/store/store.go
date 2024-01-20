@@ -2,6 +2,7 @@ package gormstore
 
 import (
 	"context"
+	"errors"
 
 	"gorm.io/gorm"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/jkaveri/goflexstore/store"
 )
 
+// New creates a new store
 func New[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable](
 	opScope *gormopscope.TransactionScope,
 	options ...Option[Entity, DTO, ID],
@@ -40,6 +42,7 @@ func New[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable](
 	return s
 }
 
+// Store is a gorm store
 type Store[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable] struct {
 	OpScope      *gormopscope.TransactionScope
 	Converter    converter.Converter[Entity, DTO, ID]
@@ -47,6 +50,7 @@ type Store[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable] struct 
 	BatchSize    int
 }
 
+// Get gets an entity
 func (s *Store[Entity, DTO, ID]) Get(ctx context.Context, params ...query.Param) (Entity, error) {
 	var (
 		dto    DTO
@@ -62,6 +66,7 @@ func (s *Store[Entity, DTO, ID]) Get(ctx context.Context, params ...query.Param)
 	return s.Converter.ToEntity(dto), nil
 }
 
+// List lists entities
 func (s *Store[Entity, DTO, ID]) List(ctx context.Context, params ...query.Param) ([]Entity, error) {
 	var (
 		dtos   []DTO
@@ -76,6 +81,7 @@ func (s *Store[Entity, DTO, ID]) List(ctx context.Context, params ...query.Param
 	return converter.ToMany(dtos, s.Converter.ToEntity), nil
 }
 
+// Count counts entities
 func (s *Store[Entity, DTO, ID]) Count(ctx context.Context, params ...query.Param) (int64, error) {
 	var (
 		count  int64
@@ -91,6 +97,7 @@ func (s *Store[Entity, DTO, ID]) Count(ctx context.Context, params ...query.Para
 	return count, nil
 }
 
+// Exists checks if an entity exists
 func (s *Store[Entity, DTO, ID]) Exists(ctx context.Context, params ...query.Param) (bool, error) {
 	var (
 		count  int64
@@ -106,6 +113,7 @@ func (s *Store[Entity, DTO, ID]) Exists(ctx context.Context, params ...query.Par
 	return count > 0, nil
 }
 
+// Delete deletes entities
 func (s *Store[Entity, DTO, ID]) Create(ctx context.Context, entity Entity) (ID, error) {
 	dto := s.Converter.ToDTO(entity)
 	if err := s.getTx(ctx).Create(&dto).Error; err != nil {
@@ -115,6 +123,9 @@ func (s *Store[Entity, DTO, ID]) Create(ctx context.Context, entity Entity) (ID,
 	return dto.GetID(), nil
 }
 
+// CreateMany batch create entities
+//
+// you can set BatchSize to control how many entities will be created in a batch
 func (s *Store[Entity, DTO, ID]) CreateMany(ctx context.Context, entities []Entity) error {
 	dtos := converter.ToMany(entities, s.Converter.ToDTO)
 	batchSize := defaultValue(s.BatchSize, 50)
@@ -122,18 +133,26 @@ func (s *Store[Entity, DTO, ID]) CreateMany(ctx context.Context, entities []Enti
 	return s.getTx(ctx).CreateInBatches(dtos, batchSize).Error
 }
 
+// Update updates an entity that including zero fields
 func (s *Store[Entity, DTO, ID]) Update(ctx context.Context, entity Entity, params ...query.Param) error {
 	dto := s.Converter.ToDTO(entity)
-	scopes := s.ScopeBuilder.Build(query.NewParams(params...))
 	id := dto.GetID()
 
-	if id == (*new(ID)) {
-		return s.getTx(ctx).Scopes(scopes...).Updates(dto).Error
+	if id == *new(ID) && len(params) == 0 {
+		return errors.New("id is required")
 	}
 
-	return s.getTx(ctx).Scopes(scopes...).Save(&dto).Error
+	tx := s.getTx(ctx)
+
+	if len(params) > 0 {
+		scopes := s.ScopeBuilder.Build(query.NewParams(params...))
+		tx = tx.Scopes(scopes...)
+	}
+
+	return tx.Save(&dto).Error
 }
 
+// PartialUpdate updates an entity partially that means only non-zero fields will be updated
 func (s *Store[Entity, DTO, ID]) PartialUpdate(ctx context.Context, entity Entity, params ...query.Param) error {
 	dto := s.Converter.ToDTO(entity)
 	scopes := s.ScopeBuilder.Build(query.NewParams(params...))
