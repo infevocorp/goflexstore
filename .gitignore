@@ -65,6 +65,9 @@ Temporary Items
 !.vscode/extensions.json
 !.vscode/*.code-snippets
 
+### JetBrains ###
+.idea
+
 # Local History for Visual Studio Code
 .history/
 

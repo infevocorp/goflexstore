@@ -29,13 +29,13 @@ func New[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable](
 	}
 
 	if s.Converter == nil {
-		s.Converter = converter.NewReflect[Entity, DTO](nil)
+		s.Converter = converter.NewReflect[Entity, DTO, ID](nil)
 	}
 
 	if s.ScopeBuilder == nil {
 		s.ScopeBuilder = gormquery.NewBuilder(
 			gormquery.WithFieldToColMap(
-				gormutils.FieldToColMap(new(DTO)),
+				gormutils.FieldToColMap(*new(DTO)),
 			),
 		)
 	}
