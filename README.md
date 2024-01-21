@@ -2,6 +2,12 @@
 
 Set of interfaces to implement your data layer more flexibly in Golang.
 
+- [Flex Store](#flex-store)
+  - [Features](#features)
+  - [Store](#store)
+  - [Getting started](#getting-started)
+  - [Contribute](#contribute)
+
 ## Features
 
 - [x] Query
@@ -150,3 +156,85 @@ Over time, as the business logic grows, there are more and more functions in the
     ```
 
 You can see the code is now reusable as we can compose different filter sets to have different query logic.
+
+## Getting started
+
+1. Get module
+
+    ```bash
+    go get github.com/jkaveri/goflexstore@latest
+    ```
+
+1. define models
+
+    ```golang
+    //file: model/user.go
+
+    type User struct {
+        ID int64
+        Name string
+    }
+
+    func(u *User) GetID() int64 {
+        return u.ID
+    }
+
+    ```
+
+1. define store
+
+    ```golang
+    //file: store/user.go
+
+    import (
+        "github.com/jkaveri/goflexstore/store"
+
+        "yourmodule/model"
+    )
+
+    type UserStore interface {
+        store.Store[*model.User, int64]
+    }
+    ```
+
+1. implement store
+
+    1. get gorm implementation
+
+        ```bash
+        go get github.com/jkaveri/goflexstore/gorm@latest
+        ```
+
+    1. define dto
+
+        ```golang
+        //file: store/sql/dto/user.go
+        type User struct {
+            ID int64 `gorm:"column:id;primaryKey"`
+            Name string `gorm:"name"`
+        }
+
+        func (u *User) GetID() int64 {
+            return u.ID
+        }
+        ```
+
+    1. implment user store
+
+        ```golang
+        //file: store/sql/user.go
+        type UserStore struct {
+            *gormstore.Store[*model.User, *dto.User, int64]
+        }
+
+
+        func NewUserStore(tScope *gormopscope.TransactionScope) *UserStore {
+            return &UserStore{
+                Store: gormstore.New(tScope),
+            }
+        }
+        ```
+
+## Contribute
+
+[Contribute.md](./CONTRIBUTE.md)
