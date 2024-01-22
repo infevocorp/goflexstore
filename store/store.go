@@ -16,7 +16,7 @@ type OnConflict struct {
 	Columns       []string
 	UpdateAll     bool
 	DoNothing     bool
-	Updates       map[string]interface{}
+	Updates       map[string]any
 	UpdateColumns []string
 	OnConstraint  string
 }
