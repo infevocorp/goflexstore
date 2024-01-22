@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/jkaveri/goflexstore/converter"
 	gormopscope "github.com/jkaveri/goflexstore/gorm/opscope"
@@ -159,6 +160,48 @@ func (s *Store[Entity, DTO, ID]) PartialUpdate(ctx context.Context, entity Entit
 	scopes := s.ScopeBuilder.Build(query.NewParams(params...))
 
 	return s.getTx(ctx).Scopes(scopes...).Updates(dto).Error
+}
+
+func (s *Store[Entity, DTO, ID]) Delete(ctx context.Context, params ...query.Param) error {
+	var (
+		dto    DTO
+		scopes = s.ScopeBuilder.Build(query.NewParams(params...))
+	)
+
+	if err := s.getTx(ctx).
+		Scopes(scopes...).
+		Delete(&dto).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Upsert creates or updates an entity
+func (s *Store[Entity, DTO, ID]) Upsert(ctx context.Context, entity Entity, onConflict store.OnConflict) (ID, error) {
+	dto := s.Converter.ToDTO(entity)
+	c := clause.OnConflict{
+		Columns:      []clause.Column{},
+		OnConstraint: onConflict.OnConstraint,
+		DoNothing:    onConflict.DoNothing,
+		UpdateAll:    onConflict.UpdateAll,
+	}
+
+	for _, col := range onConflict.Columns {
+		c.Columns = append(c.Columns, clause.Column{Name: col})
+	}
+
+	if len(onConflict.Updates) > 0 {
+		c.DoUpdates = clause.Assignments(onConflict.Updates)
+	} else if len(onConflict.UpdateColumns) > 0 {
+		c.DoUpdates = clause.AssignmentColumns(onConflict.UpdateColumns)
+	}
+
+	if err := s.getTx(ctx).Clauses(c).Create(&dto).Error; err != nil {
+		return *new(ID), err
+	}
+
+	return dto.GetID(), nil
 }
 
 func (s *Store[Entity, DTO, ID]) getTx(ctx context.Context) *gorm.DB {
