@@ -1,9 +1,13 @@
 package sql
 
-func NewStores() *Stores {
-	return &Stores{}
-}
+import (
+	"github.com/jkaveri/goflexstore/examples/cms/store"
+	gormopscope "github.com/jkaveri/goflexstore/gorm/opscope"
+)
 
-type Stores struct {
-	User UserStore
+func NewStores(scope *gormopscope.TransactionScope) *store.Stores {
+	return &store.Stores{
+		Article: NewArticleStore(scope),
+		User:    NewUserStore(scope),
+	}
 }
