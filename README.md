@@ -21,6 +21,8 @@ Set of interfaces to implement your data layer more flexibly in Golang.
   - [ ] bun?
   - [ ] ..?
 - [ ] Cache store, auto cache with simple api like `query.WithCacheKey("abc")`
+- [ ] flexstore-gen generates model, stores, dto from protobuf definitation
+- [ ] flexstore-graphql provides graphql api to query data
 
 ## Store
 
