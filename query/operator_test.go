@@ -3,8 +3,9 @@ package query_test
 import (
 	"testing"
 
-	"github.com/jkaveri/goflexstore/query"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/jkaveri/goflexstore/query"
 )
 
 func Test_Operator_String(t *testing.T) {
@@ -33,6 +34,6 @@ func Test_Operator_String(t *testing.T) {
 	})
 
 	t.Run("UNKNOWN", func(t *testing.T) {
-		assert.Equal(t, "UNKNOWN", query.Operator(100).String())
+		assert.Equal(t, "UNKNOWN(100)", query.Operator(100).String())
 	})
 }

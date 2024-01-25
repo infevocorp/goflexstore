@@ -253,6 +253,46 @@ func Test_Builder_Build(t *testing.T) {
 						AddRow(2, "jenny", 20))
 			},
 		},
+
+		{
+			name: "preload-with-filter",
+			args: args{
+				params: query.NewParams(
+					query.Filter("RefererID", 0).WithOP(query.NEQ),
+					query.Preload("Referer",
+						query.Filter("Name", "jenny"),
+						query.Filter("Age", 20),
+					),
+				),
+			},
+			expects: expects{
+				err: false,
+				users: []User{
+					{
+						ID:        1,
+						Name:      "john",
+						Age:       20,
+						RefererID: 2,
+						Referer: &User{
+							ID:   2,
+							Name: "jenny",
+							Age:  20,
+						},
+					},
+				},
+			},
+			mock: func(d deps) {
+				d.sql.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE referer_id <> ?")).
+					WithArgs(0).
+					WillReturnRows(sqlmock.NewRows([]string{"id", "name", "age", "referer_id"}).
+						AddRow(1, "john", 20, 2))
+
+				d.sql.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE name = ? AND age = ? AND `users`.`id` = ?")).
+					WithArgs("jenny", 20, 2).
+					WillReturnRows(sqlmock.NewRows([]string{"id", "name", "age"}).
+						AddRow(2, "jenny", 20))
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -267,6 +307,86 @@ func Test_Builder_Build(t *testing.T) {
 
 			builder := gormquery.NewBuilder(
 				gormquery.WithFieldToColMap(gormutils.FieldToColMap(User{})),
+			)
+			scopes := builder.Build(tt.args.params)
+
+			var users []User
+			err := db.Scopes(scopes...).Find(&users).Error
+
+			require.Equal(t, tt.expects.err, err != nil, "unepxected error: %v", err)
+			require.Equal(t, tt.expects.users, users)
+		})
+	}
+}
+
+func Test_ScopeBuilder_CustomFilter(t *testing.T) {
+	type deps struct {
+		sql sqlmock.Sqlmock
+	}
+
+	type args struct {
+		customFilters map[string]gormquery.ScopeBuilderFunc
+		params        query.Params
+	}
+
+	type expects struct {
+		err   bool
+		users []User
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		expects expects
+		mock    func(d deps)
+	}{
+		{
+			name: "custom-filter-should-be-called",
+			args: args{
+				customFilters: map[string]gormquery.ScopeBuilderFunc{
+					"name": func(param query.Param) gormquery.ScopeFunc {
+						return func(tx *gorm.DB) *gorm.DB {
+							p := param.(query.FilterParam)
+
+							return tx.Where("`first_name` = ?", p.Value)
+						}
+					},
+				},
+				params: query.NewParams(
+					query.Filter("name", "john"),
+				),
+			},
+			expects: expects{
+				err: false,
+				users: []User{
+					{
+						ID:   1,
+						Name: "john",
+						Age:  20,
+					},
+				},
+			},
+			mock: func(d deps) {
+				d.sql.
+					ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `first_name` = ?")).
+					WithArgs("john").
+					WillReturnRows(sqlmock.NewRows([]string{"id", "name", "age"}).AddRow(1, "john", 20))
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db, sqlMock := newTestDB(t)
+
+			d := deps{
+				sql: sqlMock,
+			}
+
+			tt.mock(d)
+
+			builder := gormquery.NewBuilder(
+				gormquery.WithCustomFilters(tt.args.customFilters),
 			)
 			scopes := builder.Build(tt.args.params)
 

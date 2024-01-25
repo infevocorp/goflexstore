@@ -1,24 +1,37 @@
 package query
 
-// Operator is the operator used in filter
+import "fmt"
+
+// Operator defines a set of constants representing operators used in filter expressions.
+// These operators are used to specify the type of comparison to be performed in a query's filter condition.
 type Operator uint8
 
 const (
-	// EQ Equal
+	// EQ represents the 'Equal' operator in a filter expression.
 	EQ Operator = iota
-	// NEQ Not Equal
+
+	// NEQ represents the 'Not Equal' operator in a filter expression.
 	NEQ
-	// GT Greater Than
+
+	// GT represents the 'Greater Than' operator in a filter expression.
 	GT
-	// GTE Greater Than or Equal
+
+	// GTE represents the 'Greater Than or Equal' operator in a filter expression.
 	GTE
-	// LT Less Than
+
+	// LT represents the 'Less Than' operator in a filter expression.
 	LT
-	// LTE Less Than or Equal
+
+	// LTE represents the 'Less Than or Equal' operator in a filter expression.
 	LTE
 )
 
-// String returns the string representation of the operator
+// String returns the string representation of the Operator.
+// This method is useful for displaying or logging the operator in a human-readable format.
+//
+// Returns:
+// A string that represents the Operator. For example, it returns "EQ" for the EQ operator.
+// If the operator does not match any predefined operator, "UNKNOWN" is returned.
 func (o Operator) String() string {
 	switch o {
 	case EQ:
@@ -34,6 +47,6 @@ func (o Operator) String() string {
 	case LTE:
 		return "LTE"
 	default:
-		return "UNKNOWN"
+		return fmt.Sprintf("UNKNOWN(%d)", o)
 	}
 }

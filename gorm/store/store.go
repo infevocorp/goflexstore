@@ -15,7 +15,12 @@ import (
 	"github.com/jkaveri/goflexstore/store"
 )
 
-// New creates a new store
+// New initializes a new Store instance for handling CRUD operations on entities.
+// It accepts an operation scope and a variable number of options to customize the store behavior.
+// The function returns a pointer to the initialized Store.
+//
+// Entity and DTO are types that must implement the store.Entity interface.
+// ID is the type of the identifier for the entities.
 func New[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable](
 	opScope *gormopscope.TransactionScope,
 	options ...Option[Entity, DTO, ID],
@@ -44,7 +49,12 @@ func New[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable](
 	return s
 }
 
-// Store is a gorm store
+// Store represents a storage mechanism using GORM for database operations.
+// It supports CRUD operations and is designed to be generic for any Entity and DTO types.
+//
+// Entity: The domain model type.
+// DTO: The data transfer object type, representing the database model.
+// ID: The type of the unique identifier for the entity.
 type Store[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable] struct {
 	OpScope      *gormopscope.TransactionScope
 	Converter    converter.Converter[Entity, DTO, ID]
@@ -52,7 +62,8 @@ type Store[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable] struct 
 	BatchSize    int
 }
 
-// Get gets an entity
+// Get retrieves a single entity based on provided query parameters.
+// It returns the entity if found, otherwise an error.
 func (s *Store[Entity, DTO, ID]) Get(ctx context.Context, params ...query.Param) (Entity, error) {
 	var (
 		dto    DTO
@@ -68,7 +79,8 @@ func (s *Store[Entity, DTO, ID]) Get(ctx context.Context, params ...query.Param)
 	return s.Converter.ToEntity(dto), nil
 }
 
-// List lists entities
+// List retrieves a list of entities matching the provided query parameters.
+// Returns a slice of entities and an error if the operation fails.
 func (s *Store[Entity, DTO, ID]) List(ctx context.Context, params ...query.Param) ([]Entity, error) {
 	var (
 		dtos   []DTO
@@ -83,7 +95,8 @@ func (s *Store[Entity, DTO, ID]) List(ctx context.Context, params ...query.Param
 	return converter.ToMany(dtos, s.Converter.ToEntity), nil
 }
 
-// Count counts entities
+// Count returns the number of entities that satisfy the provided query parameters.
+// The count is returned along with an error if the operation fails.
 func (s *Store[Entity, DTO, ID]) Count(ctx context.Context, params ...query.Param) (int64, error) {
 	var (
 		count  int64
@@ -99,7 +112,8 @@ func (s *Store[Entity, DTO, ID]) Count(ctx context.Context, params ...query.Para
 	return count, nil
 }
 
-// Exists checks if an entity exists
+// Exists checks for the existence of at least one entity that matches the query parameters.
+// Returns true if such an entity exists, false otherwise.
 func (s *Store[Entity, DTO, ID]) Exists(ctx context.Context, params ...query.Param) (bool, error) {
 	var (
 		count  int64
@@ -115,7 +129,8 @@ func (s *Store[Entity, DTO, ID]) Exists(ctx context.Context, params ...query.Par
 	return count > 0, nil
 }
 
-// Delete deletes entities
+// Create adds a new entity to the store and returns its ID.
+// Returns an error if the creation fails.
 func (s *Store[Entity, DTO, ID]) Create(ctx context.Context, entity Entity) (ID, error) {
 	dto := s.Converter.ToDTO(entity)
 	if err := s.getTx(ctx).Create(&dto).Error; err != nil {
@@ -125,9 +140,9 @@ func (s *Store[Entity, DTO, ID]) Create(ctx context.Context, entity Entity) (ID,
 	return dto.GetID(), nil
 }
 
-// CreateMany batch create entities
-//
-// you can set BatchSize to control how many entities will be created in a batch
+// CreateMany performs batch creation of entities.
+// The BatchSize field of the store determines the number of entities in each batch.
+// Returns an error if the operation fails.
 func (s *Store[Entity, DTO, ID]) CreateMany(ctx context.Context, entities []Entity) error {
 	dtos := converter.ToMany(entities, s.Converter.ToDTO)
 	batchSize := defaultValue(s.BatchSize, 50)
@@ -135,7 +150,8 @@ func (s *Store[Entity, DTO, ID]) CreateMany(ctx context.Context, entities []Enti
 	return s.getTx(ctx).CreateInBatches(dtos, batchSize).Error
 }
 
-// Update updates an entity that including zero fields
+// Update modifies an existing entity in the store, including fields with zero values.
+// Returns an error if the update operation fails.
 func (s *Store[Entity, DTO, ID]) Update(ctx context.Context, entity Entity, params ...query.Param) error {
 	dto := s.Converter.ToDTO(entity)
 	id := dto.GetID()
@@ -151,10 +167,12 @@ func (s *Store[Entity, DTO, ID]) Update(ctx context.Context, entity Entity, para
 		tx = tx.Scopes(scopes...)
 	}
 
-	return tx.Save(&dto).Error
+	return tx.Select("*").Updates(&dto).Error
 }
 
-// PartialUpdate updates an entity partially that means only non-zero fields will be updated
+// PartialUpdate updates specific fields of an existing entity in the store.
+// Only non-zero fields of the entity are updated.
+// Returns an error if the operation fails.
 func (s *Store[Entity, DTO, ID]) PartialUpdate(ctx context.Context, entity Entity, params ...query.Param) error {
 	dto := s.Converter.ToDTO(entity)
 	scopes := s.ScopeBuilder.Build(query.NewParams(params...))
@@ -162,6 +180,8 @@ func (s *Store[Entity, DTO, ID]) PartialUpdate(ctx context.Context, entity Entit
 	return s.getTx(ctx).Scopes(scopes...).Updates(dto).Error
 }
 
+// Delete removes entities from the store based on the provided query parameters.
+// Returns an error if the deletion operation fails.
 func (s *Store[Entity, DTO, ID]) Delete(ctx context.Context, params ...query.Param) error {
 	var (
 		dto    DTO
@@ -177,7 +197,8 @@ func (s *Store[Entity, DTO, ID]) Delete(ctx context.Context, params ...query.Par
 	return nil
 }
 
-// Upsert creates or updates an entity
+// Upsert either creates a new entity or updates an existing one based on the provided conflict resolution strategy.
+// Returns the ID of the affected entity and an error if the operation fails.
 func (s *Store[Entity, DTO, ID]) Upsert(ctx context.Context, entity Entity, onConflict store.OnConflict) (ID, error) {
 	dto := s.Converter.ToDTO(entity)
 	c := clause.OnConflict{
