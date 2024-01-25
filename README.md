@@ -1,163 +1,22 @@
-# Flex Store
+# Flex Stores
 
-Set of interfaces to implement your data layer more flexibly in Golang.
+Welcome to Flex Store, a revolutionary suite of interfaces tailored for Golang applications. Flex Store stands out with its:
 
-- [Flex Store](#flex-store)
-  - [Features](#features)
-  - [Store](#store)
+- **Flexibility and Independence:** Our interfaces are crafted to offer unparalleled flexibility and independence. This design enables dynamic query handling and seamless integration with various ORMs and data sources, making your data layer more robust and versatile.
+
+- **Enhanced Transaction Management:** The advanced Operation Scope interface of Flex Store brings a new level of power in managing transactions. It ensures data integrity and consistency across your applications, safeguarding your critical operations.
+
+- **Adaptability and Growth:** Flex Store grows with you. As your project expands, it adapts, supporting additional features like metric operation scopes and tracing. This adaptability makes it an ideal partner for evolving application needs.
+
+- **Simplified Data Layer:** We understand the challenges of data layer complexity. Flex Store significantly simplifies this, reducing the implementation and maintenance burdens. This lets developers focus more on developing business logic rather than getting bogged down by boilerplate code.
+
+Whether you are working on a small-scale project or dealing with the intricacies of a large-scale application, Flex Store is equipped to enhance your data management efficiency and effectiveness. Embrace the ease of data layer management with Flex Store, and propel your Golang applications to new heights.
+
+- [Flex Stores](#flex-stores)
   - [Getting started](#getting-started)
+  - [Features](#features)
+  - [Addressing the Limitations of the Repository Pattern with Flex Store](#addressing-the-limitations-of-the-repository-pattern-with-flex-store)
   - [Contribute](#contribute)
-
-## Features
-
-- [x] Query
-  - [x] True flexible and indepent Store interfaces
-- [x] Operation Scope
-  - [x] Transaction management with Operation Scope interface
-  - [ ] Metric operation scope
-  - [ ] Tracing operation scope
-- [x] Implementation
-  - [x] GORM
-  - [ ] bun?
-  - [ ] ..?
-- [ ] Cache store, auto cache with simple api like `query.WithCacheKey("abc")`
-- [ ] flexstore-gen generates model, stores, dto from protobuf definitation
-- [ ] flexstore-graphql provides graphql api to query data
-
-## Store
-
-A Store is an interface that helps you abstract your data layer API, which allows the code to be easier to test and maintain.
-
-If you are familiar with the Repository pattern, then you'll see the differences between a Store and a Repository. A Store is purely a data layer query which is another layer below the Repository. In other words, you can use the interfaces of the Store to implement your Repository with additional business logic. For example,
-
-P.S.: Please do not take the code sample below as a getting started guide. It only has one purpose: to serve as an example. I will have another section to show how to get started later.
-
-```golang
-    type UserStore interface {
-        store.Store[User, int64]
-    }
-
-    type UserRepo interface {
-        GetByUsername(ctx context.Context, username string) (User, error)
-    }
-
-    type UserRepoImpl struct {
-        Store UserStore
-    }
-    func (r *UserRepoImpl) GetByUsername(ctx context.Context, username string) (User, error) {
-        return r.Store.Get(ctx, filters.Username(username))
-    }
-```
-
-However, in my experience, if you already have a Store, you don't need to have a Repository layer. You can go straight to the application logic layer. This helps your application be easier to maintain.
-
-**Why do we need to have a Store?**
-
-I usually use GORM as an ORM, which already contains a flexible interface to communicate with databases. However, I always structure with reusable queries. For example:
-
-When we used to implement our Repository layer like this
-
-```golang
-type ArticleRepo struct {
-    db *gorm.DB
-}
-
-func (r *ArticleRepo) ListByTag(ctx context.Context, tag string) ([]model.Article, error) {
-    var articles []dto.Article
-
-    if err := r.db.
-        Where("id IN (SELECT article_id FROM article_tags WHERE tag = ?)", tag).
-        Find(&articles).Error; err != nil {
-            return nil, err
-    }
-
-    return mapDaoToArticles(articles), nil
-}
-
-func (r *ArticleRepo) ListByTagAndAuthor(ctx context.Context, authorId int64, tag string) ([]model.Article, error) {
-     var articles []dto.Article
-
-    if err := r.db.
-        Where("author_id = ?", authorId).
-        Where("id IN (SELECT article_id FROM article_tags WHERE tag = ?)", tag).
-        Find(&articles).Error; err != nil {
-            return nil, err
-    }
-
-    return mapDaoToArticles(articles), nil
-}
-```
-
-In the code above, you can see two problems:
-
-1. The query is duplicated when selected by the tag.
-2. The query is bound to the low-level infrastructure (MySQL syntax).
-
-Over time, as the business logic grows, there are more and more functions in the repository. It means more duplicated queries and more binding to MySQL, even if you are using GORM, but it doesn't mean you can easily switch to another database.
-
-**Now, let's see how Flex Store helps you improve the code:**
-
-1. Define `ArticleStore` interface
-
-    ```golang
-    //store/article.go
-
-    type ArticleStore interface {
-        // extends flexstore/store.Store interface
-        store.Store[model.Article, int64]
-    }
-
-    ```
-
-1. Define `filters`
-
-    ```golang
-    //filters/filters.go
-
-    import (
-        "github.com/jkaveri/goflexstore/query"
-    )
-
-    func Tag(tag ...string) query.FilterParam {
-        return query.Filter("tag", tag)
-    }
-
-    var GetTag = query.FilterGetter("tag")
-
-    ```
-
-1. Implement API handler
-
-    ```golang
-    // handlers/handlers.go
-
-    type ApiHandler struct {
-        store ArticleStore
-    }
-
-    type ListByTagRequest struct {
-        Tag string
-    }
-
-    func (h *ApiHandler) ListByTag(ctx context.Context, request ListByTagRequest) ([]model.Article, error) {
-        return h.store.List(ctx, filters.Tag(request.Tag))
-    }
-
-    type ListByAuthorRequest struct {
-        Tag string
-        AuthorID int64
-    }
-
-    func (h *ApiHandler) ListByAuthor(ctx context.Context, request ListByAuthorRequest) ([]*model.Article, error) {
-        return h.store.List(ctx,
-            filters.Tag(request.Tag),
-            filters.Author(request.AuthorID),
-        )
-    }
-
-    ```
-
-You can see the code is now reusable as we can compose different filter sets to have different query logic.
 
 ## Getting started
 
@@ -236,6 +95,132 @@ You can see the code is now reusable as we can compose different filter sets to 
             }
         }
         ```
+
+## Features
+
+- [x] **Query**
+  - [x] Implement true flexible and independent Store interfaces.
+- [x] **Operation Scope**
+  - [x] Implement transaction management with Operation Scope interface.
+  - [ ] Add metric operation scope.
+  - [ ] Add tracing operation scope.
+- [x] **Implementation**
+  - [x] Implement GORM.
+  - [ ] Consider integrating bun.
+  - [ ] Explore other implementation options.
+- [ ] Implement Cache store with automatic caching using a simple API like `query.WithCacheKey("abc")`.
+- [ ] Develop flexstore-gen to generate models, stores, and DTOs from protobuf definitions.
+- [ ] Create flexstore-graphql to provide a GraphQL API for querying data.
+
+## Addressing the Limitations of the Repository Pattern with Flex Store
+
+The Repository pattern is a common architectural practice, but it's not without its challenges, particularly when scaling or dealing with complex queries. The following Go code snippet demonstrates typical scenarios where the Repository pattern may lead to inefficiencies:
+
+```golang
+type ArticleRepo struct {
+    db *gorm.DB
+}
+
+func (r *ArticleRepo) ListByTag(ctx context.Context, tag string) ([]model.Article, error) {
+    var articles []dto.Article
+
+    if err := r.db.
+        Where("id IN (SELECT article_id FROM article_tags WHERE tag = ?)", tag).
+        Find(&articles).Error; err != nil {
+            return nil, err
+    }
+
+    return mapDaoToArticles(articles), nil
+}
+
+func (r *ArticleRepo) ListByTagAndAuthor(ctx context.Context, authorId int64, tag string) ([]model.Article, error) {
+     var articles []dto.Article
+
+    if err := r.db.
+        Where("author_id = ?", authorId).
+        Where("id IN (SELECT article_id FROM article_tags WHERE tag = ?)", tag).
+        Find(&articles).Error; err != nil {
+            return nil, err
+    }
+
+    return mapDaoToArticles(articles), nil
+}
+```
+
+In this example, we observe two primary issues:
+
+- **Query Duplication**: Both ListByTag and ListByTagAndAuthor methods exhibit a similar query pattern for selecting articles by tags, leading to redundancy.
+- **Database Coupling**: The queries are tightly bound to the MySQL syntax, making it difficult to adapt or switch to other database systems without extensive refactoring.
+
+As applications evolve and business logic grows, these problems tend to amplify, with increasing function count in the repository leading to more duplicated queries and stronger coupling to the database syntax. Even with an ORM like GORM, the dependency on specific database syntax persists, restricting flexibility and adaptability.
+
+Recognizing these issues, Flex Store offers a more streamlined approach as demonstrated below:
+
+1. Define `ArticleStore` interface
+
+    ```golang
+    //store/article.go
+
+    // ArticleStore extends the flexstore/store.Store interface.
+    type ArticleStore interface {
+        store.Store[model.Article, int64]
+    }
+    ```
+
+2. Define `filters`
+
+    ```golang
+    //filters/filters.go
+
+    import (
+        "github.com/jkaveri/goflexstore/query"
+    )
+
+    // Tag creates a query.FilterParam for tag filtering.
+    func Tag(tag ...string) query.FilterParam {
+        return query.Filter("tag", tag)
+    }
+
+    var GetTag = query.FilterGetter("tag")
+
+    ```
+
+3. Implement API handler
+
+    ```golang
+    // handlers/handlers.go
+
+    type ApiHandler struct {
+        store ArticleStore
+    }
+
+    type ListByTagRequest struct {
+        Tag string
+    }
+
+    // ListByTag handles requests to list articles by tag.
+    func (h *ApiHandler) ListByTag(ctx context.Context, request ListByTagRequest) ([]model.Article, error) {
+        return h.store.List(ctx, filters.Tag(request.Tag))
+    }
+
+    type ListByAuthorRequest struct {
+        Tag string
+        AuthorID int64
+    }
+
+    // ListByAuthor handles requests to list articles by author and tag.
+    func (h *ApiHandler) ListByAuthor(ctx context.Context, request ListByAuthorRequest) ([]*model.Article, error) {
+        return h.store.List(ctx,
+            filters.Tag(request.Tag),
+            filters.Author(request.AuthorID),
+        )
+    }
+
+    ```
+
+In this improved approach, the code is more reusable, allowing us to compose different filter sets for varied query logic.
+
+By adopting Flex Store's approach, developers can effectively circumvent the common pitfalls associated with the Repository pattern, leading to more maintainable, adaptable, and efficient codebases.
 
 ## Contribute
 

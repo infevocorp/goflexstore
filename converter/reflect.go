@@ -10,10 +10,22 @@ import (
 	"github.com/jkaveri/goflexstore/store"
 )
 
-// NewReflect creates a new converter that uses reflection to convert between DTO and Entity
+// NewReflect creates a new reflection-based converter.
 //
-// overridesMapping key is Entity's field name. value is DTO's field name, it is safe to be nil or empty
-// by default it will use Entity's field name as DTO's field name
+// It converts between DTO and Entity using reflection, mapping fields from one to the other.
+// The `overridesMapping` argument allows specifying custom field name mappings between the Entity and DTO.
+// If nil or empty, the Entity's field names are used as DTO's field names.
+//
+// Type parameters:
+// - Entity: The Entity type implementing store.Entity interface.
+// - DTO: The DTO type implementing store.Entity interface.
+// - ID: The type of the identifier for Entity and DTO, which must be comparable.
+//
+// Parameters:
+// - overridesMapping: A map where the key is the Entity's field name and the value is the DTO's field name.
+//
+// Returns:
+// A new instance of Reflect converter with the specified field mappings.
 func NewReflect[
 	Entity store.Entity[ID],
 	DTO store.Entity[ID],
@@ -27,7 +39,17 @@ func NewReflect[
 	}
 }
 
-// Reflect is a converter that uses reflection to convert between DTO and Entity
+// Reflect is a converter that uses reflection to convert between DTO and Entity.
+// It implements the Converter interface and allows for automated conversion based on field names.
+//
+// Type parameters:
+// - Entity: The Entity type.
+// - DTO: The DTO type.
+// - ID: The type of the identifier for Entity and DTO.
+//
+// Fields:
+// - dtoFieldsMapping: Map where the key is Entity's field name and the value is DTO's field name.
+// - entityFieldMapping: Map where the key is DTO's field name and the value is Entity's field name.
 type Reflect[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable] struct {
 	// fieldMapping key is Entity's field name. value is DTO's field name.
 	dtoFieldsMapping map[string]string
@@ -35,6 +57,14 @@ type Reflect[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable] struc
 	entityFieldMapping map[string]string
 }
 
+// ToEntity converts a DTO to an Entity using reflection.
+// It creates a new instance of Entity and copies values from the DTO to the Entity based on field mappings.
+//
+// Parameters:
+// - dto: The DTO to be converted to Entity.
+//
+// Returns:
+// The converted Entity.
 func (c Reflect[Entity, DTO, ID]) ToEntity(dto DTO) Entity {
 	entity := *new(Entity)
 
@@ -43,6 +73,14 @@ func (c Reflect[Entity, DTO, ID]) ToEntity(dto DTO) Entity {
 	return entity
 }
 
+// ToDTO converts an Entity to a DTO using reflection.
+// It creates a new instance of DTO and copies values from the Entity to the DTO based on field mappings.
+//
+// Parameters:
+// - entity: The Entity to be converted to DTO.
+//
+// Returns:
+// The converted DTO.
 func (c Reflect[Entity, DTO, ID]) ToDTO(entity Entity) DTO {
 	dto := *new(DTO)
 
@@ -51,56 +89,90 @@ func (c Reflect[Entity, DTO, ID]) ToDTO(entity Entity) DTO {
 	return dto
 }
 
+// reflectCopy performs the actual copying of values from the source to the destination.
+// It iterates over the fields of the destination and sets values from the source based on the provided field mapping.
+//
+// Type parameters:
+// - SRC: Source type.
+// - DST: Destination type.
+//
+// Parameters:
+// - src: The source object.
+// - dst: The destination object.
+// - fieldMapping: Map where the key is the destination field name and the value is the source field name.
 func reflectCopy[SRC any, DST any](src SRC, dst DST, fieldMapping map[string]string) {
+	// Obtain a reflection Value of the source object.
 	srcVal := reflect.ValueOf(src)
 
+	// Unwrap the source value if it's a pointer.
+	// This is to handle cases where the source is a pointer type.
 	for srcVal.Kind() == reflect.Ptr {
+		// If the source value is a zero value (nil), return early.
 		if srcVal.IsZero() {
 			return
 		}
 
+		// Get the actual value that the pointer points to.
 		srcVal = srcVal.Elem()
 	}
 
+	// Obtain a reflection Value of the destination object.
 	dstVal := reflect.ValueOf(dst)
+	// Ensure the destination is a pointer, as we need to modify it.
 	if dstVal.Kind() != reflect.Ptr {
 		panic("dst must be reference type (pointer)")
 	}
 
+	// Unwrap the destination value if it's a pointer.
+	// This also ensures that we're dealing with the actual value.
 	for dstVal.Kind() == reflect.Ptr {
+		// If the destination is a nil pointer, initialize it with a new value.
 		if dstVal.IsNil() {
 			dstVal.Set(reflect.New(dstVal.Type().Elem()))
 		}
 
+		// Get the actual value that the pointer points to.
 		dstVal = dstVal.Elem()
 	}
 
+	// Get the type information of the destination.
 	dstType := dstVal.Type()
 
-	numFiled := dstVal.NumField()
-	for i := 0; i < numFiled; i++ {
+	// Iterate over each field of the destination.
+	numField := dstVal.NumField()
+	for i := 0; i < numField; i++ {
+		// Get the i-th field of the destination.
 		dstField := dstVal.Field(i)
+
+		// Skip if the field cannot be set (unexported private field).
 		if !dstField.CanSet() {
 			continue
 		}
 
+		// Get the name of the i-th field.
 		dstFieldName := dstType.Field(i).Name
+
+		// If a field mapping exists, use it to find the corresponding source field.
 		if fieldMapping != nil {
 			if f, ok := fieldMapping[dstFieldName]; ok && f != "" {
 				dstFieldName = f
 			}
 		}
 
+		// Find the field in the source object that matches the destination field.
 		srcField := srcVal.FieldByName(dstFieldName)
+		// Skip if the source field is not valid (doesn't exist).
 		if !srcField.IsValid() {
 			continue
 		}
 
-		// no need to copy value from nil pointer
+		// If the source field is a pointer but nil, skip copying.
 		if srcField.Kind() == reflect.Ptr && srcField.IsNil() {
 			continue
 		}
 
+		// Attempt to set the destination field with the value of the source field.
+		// Panic with a detailed error message if the assignment is not possible.
 		if !setValue(srcField, dstField) {
 			panic(errors.Errorf(
 				"cannot assign src.%s(%s) to dst.%s(%s)",

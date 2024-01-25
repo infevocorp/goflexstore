@@ -1,23 +1,31 @@
 package query
 
-// Param is the interface for query param
+// Param is an interface representing a query parameter.
+// It provides a common method to identify the type of the parameter.
 type Param interface {
-	// ParamType returns the name of the param
+	// ParamType returns the name of the param, used to identify the type of the query parameter.
 	ParamType() string
 }
 
-// Params list of query params
+// Params is a struct that aggregates multiple query parameters.
+// It also provides methods to retrieve specific types of parameters and a caching mechanism for efficient retrieval.
 type Params struct {
 	params       []Param
 	cachedFilter map[string]int
 }
 
-// Params returns the params
+// Params returns the list of all query parameters.
 func (p Params) Params() []Param {
 	return p.params
 }
 
-// Get returns the params with given paramType
+// Get returns all query parameters of a specific type.
+//
+// Parameters:
+//   - paramType: The type of parameters to retrieve.
+//
+// Returns:
+// A slice of Param that match the specified paramType.
 func (p Params) Get(paramType string) []Param {
 	params := []Param{}
 
@@ -30,7 +38,13 @@ func (p Params) Get(paramType string) []Param {
 	return params
 }
 
-// GetFilter returns the FilterParam with given name
+// GetFilter returns the FilterParam with the given name, if it exists.
+//
+// Parameters:
+//   - name: The name of the filter parameter to retrieve.
+//
+// Returns:
+// A FilterParam and a boolean indicating whether it was found.
 func (p Params) GetFilter(name string) (FilterParam, bool) {
 	i, ok := p.cachedFilter[name]
 	if ok {
@@ -40,9 +54,17 @@ func (p Params) GetFilter(name string) (FilterParam, bool) {
 	return FilterParam{}, false
 }
 
-// NewParams returns a new Params
+// NewParams creates a new Params object with the given query parameters.
+// It initializes a cache for filter parameters for efficient retrieval.
+//
+// Parameters:
+//   - params: A variable number of Param to include in the Params object.
+//
+// Returns:
+// A new Params object containing the provided query parameters.
 //
 // Example:
+// Creating a new Params object with various query parameters:
 //
 //	query.NewParams(
 //		query.Select("ID", "Name"),
@@ -65,7 +87,13 @@ func NewParams(params ...Param) Params {
 	}
 }
 
-// FilterGetter create a func to get FilterParam from Params with given name.
+// FilterGetter creates a function to retrieve a FilterParam from Params by a given name.
+//
+// Parameters:
+//   - name: The name of the filter parameter to retrieve.
+//
+// Returns:
+// A function that takes Params and returns a FilterParam and a boolean indicating whether it was found.
 func FilterGetter(name string) func(Params) (FilterParam, bool) {
 	return func(params Params) (FilterParam, bool) {
 		return params.GetFilter(name)

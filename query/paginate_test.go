@@ -9,9 +9,16 @@ import (
 )
 
 func Test_Paginate(t *testing.T) {
-	p := query.Paginate(10, 20)
-	assert.Equal(t, query.PaginateParam{
-		Offset: 10,
-		Limit:  20,
-	}, p)
+	t.Run("param-type-should-be-paginate", func(t *testing.T) {
+		assert.Equal(t, query.TypePaginate, query.PaginateParam{}.ParamType())
+	})
+
+	t.Run("should-create-paginate-param", func(t *testing.T) {
+		p := query.Paginate(1, 2)
+
+		assert.Equal(t, query.PaginateParam{
+			Offset: 1,
+			Limit:  2,
+		}, p)
+	})
 }

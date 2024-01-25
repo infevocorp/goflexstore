@@ -9,6 +9,10 @@ import (
 )
 
 func Test_GroupBy(t *testing.T) {
+	t.Run("param-type-should-be-groupby", func(t *testing.T) {
+		assert.Equal(t, query.TypeGroupBy, query.GroupByParam{}.ParamType())
+	})
+
 	t.Run("should-create-group-by-param", func(t *testing.T) {
 		g := query.GroupBy("a")
 		assert.Equal(t, query.GroupByParam{Names: []string{"a"}}, g)

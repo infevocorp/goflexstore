@@ -9,12 +9,15 @@ import (
 )
 
 func Test_Select(t *testing.T) {
-	p := query.Select("id", "name")
+	t.Run("param-type-should-be-select", func(t *testing.T) {
+		assert.Equal(t, query.TypeSelect, query.SelectParam{}.ParamType())
+	})
 
-	assert.Equal(t,
-		query.SelectParam{
-			Names: []string{"id", "name"},
-		},
-		p,
-	)
+	t.Run("should-create-select-param", func(t *testing.T) {
+		s := query.Select("a", "b")
+
+		assert.Equal(t, query.SelectParam{
+			Names: []string{"a", "b"},
+		}, s)
+	})
 }

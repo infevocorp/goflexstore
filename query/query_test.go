@@ -96,3 +96,30 @@ func Test_Params_GetFilter(t *testing.T) {
 		assert.False(t, ok)
 	})
 }
+
+func Test_Params(t *testing.T) {
+	t.Run("should-return-params", func(t *testing.T) {
+		params := query.NewParams(
+			query.Filter("name", "john"),
+		)
+
+		assert.Equal(t, []query.Param{
+			query.Filter("name", "john"),
+		}, params.Params())
+	})
+}
+
+func Test_Params_FilterGetter(t *testing.T) {
+	t.Run("should-return-filter-getter", func(t *testing.T) {
+		params := query.NewParams(
+			query.Filter("name", "john"),
+		)
+
+		getter := query.FilterGetter("name")
+
+		filterParam, ok := getter(params)
+
+		assert.True(t, ok)
+		assert.Equal(t, query.Filter("name", "john"), filterParam)
+	})
+}
