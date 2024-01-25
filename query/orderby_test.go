@@ -9,6 +9,16 @@ import (
 )
 
 func Test_OrderBy(t *testing.T) {
-	g := query.OrderBy("a", true)
-	assert.Equal(t, query.OrderByParam{Name: "a", Desc: true}, g)
+	t.Run("param-type-should-be-orderby", func(t *testing.T) {
+		assert.Equal(t, query.TypeOrderBy, query.OrderByParam{}.ParamType())
+	})
+
+	t.Run("should-create-order-by-param", func(t *testing.T) {
+		o := query.OrderBy("Name", false)
+
+		assert.Equal(t, query.OrderByParam{
+			Name: "Name",
+			Desc: false,
+		}, o)
+	})
 }
