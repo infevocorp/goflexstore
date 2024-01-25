@@ -17,6 +17,7 @@ Whether you are working on a small-scale project or dealing with the intricacies
   - [Features](#features)
   - [Addressing the Limitations of the Repository Pattern with Flex Store](#addressing-the-limitations-of-the-repository-pattern-with-flex-store)
   - [Contribute](#contribute)
+  - [License](#license)
 
 ## Getting started
 
@@ -225,3 +226,7 @@ By adopting Flex Store's approach, developers can effectively circumvent the com
 ## Contribute
 
 [Contribute.md](./CONTRIBUTE.md)
+
+## License
+
+[MIT](./LICENSE.txt)
