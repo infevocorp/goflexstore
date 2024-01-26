@@ -9,13 +9,13 @@ import "github.com/jkaveri/goflexstore/store"
 // logic is not straightforward and requires custom implementation.
 //
 // Type parameters:
-// - Entity: The type representing the Entity, typically used for database operations.
-// - DTO: The type representing the Data Transfer Object, used for data transfer between layers or systems.
-// - ID: The type of the identifier for the Entity and DTO, which must be comparable.
+//   - Entity: The type representing the Entity, typically used for database operations.
+//   - DTO: The type representing the Data Transfer Object, used for data transfer between layers or systems.
+//   - ID: The type of the identifier for the Entity and DTO, which must be comparable.
 //
 // Parameters:
-// - toEntityFn: A function that converts a DTO to an Entity.
-// - toDTOFn: A function that converts an Entity to a DTO.
+//   - toEntityFn: A function that converts a DTO to an Entity.
+//   - toDTOFn: A function that converts an Entity to a DTO.
 //
 // Returns:
 // A Converter instance that uses the provided functions for conversion.
@@ -34,13 +34,13 @@ func NewManual[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable](
 // between DTOs and Entities.
 //
 // Type parameters:
-// - Entity: The type representing the Entity.
-// - DTO: The type representing the Data Transfer Object.
-// - ID: The type of the identifier for the Entity and DTO.
+//   - Entity: The type representing the Entity.
+//   - DTO: The type representing the Data Transfer Object.
+//   - ID: The type of the identifier for the Entity and DTO.
 //
 // Fields:
-// - ToEntityFn: A function that converts a DTO to an Entity.
-// - ToDTOFn: A function that converts an Entity to a DTO.
+//   - ToEntityFn: A function that converts a DTO to an Entity.
+//   - ToDTOFn: A function that converts an Entity to a DTO.
 type Manual[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable] struct {
 	ToEntityFn func(dto DTO) Entity
 	ToDTOFn    func(entity Entity) DTO
@@ -52,7 +52,7 @@ type Manual[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable] struct
 // converter to transform a DTO into an Entity.
 //
 // Parameters:
-// - dto: The DTO to convert.
+//   - dto: The DTO to convert.
 //
 // Returns:
 // The converted Entity.
@@ -66,7 +66,7 @@ func (c *Manual[Entity, DTO, ID]) ToEntity(dto DTO) Entity {
 // converter to transform an Entity into a DTO.
 //
 // Parameters:
-// - entity: The Entity to convert.
+//   - entity: The Entity to convert.
 //
 // Returns:
 // The converted DTO.

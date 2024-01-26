@@ -17,12 +17,12 @@ import (
 // If nil or empty, the Entity's field names are used as DTO's field names.
 //
 // Type parameters:
-// - Entity: The Entity type implementing store.Entity interface.
-// - DTO: The DTO type implementing store.Entity interface.
-// - ID: The type of the identifier for Entity and DTO, which must be comparable.
+//   - Entity: The Entity type implementing store.Entity interface.
+//   - DTO: The DTO type implementing store.Entity interface.
+//   - ID: The type of the identifier for Entity and DTO, which must be comparable.
 //
 // Parameters:
-// - overridesMapping: A map where the key is the Entity's field name and the value is the DTO's field name.
+//   - overridesMapping: A map where the key is the Entity's field name and the value is the DTO's field name.
 //
 // Returns:
 // A new instance of Reflect converter with the specified field mappings.
@@ -43,13 +43,13 @@ func NewReflect[
 // It implements the Converter interface and allows for automated conversion based on field names.
 //
 // Type parameters:
-// - Entity: The Entity type.
-// - DTO: The DTO type.
-// - ID: The type of the identifier for Entity and DTO.
+//   - Entity: The Entity type.
+//   - DTO: The DTO type.
+//   - ID: The type of the identifier for Entity and DTO.
 //
 // Fields:
-// - dtoFieldsMapping: Map where the key is Entity's field name and the value is DTO's field name.
-// - entityFieldMapping: Map where the key is DTO's field name and the value is Entity's field name.
+//   - dtoFieldsMapping: Map where the key is Entity's field name and the value is DTO's field name.
+//   - entityFieldMapping: Map where the key is DTO's field name and the value is Entity's field name.
 type Reflect[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable] struct {
 	// fieldMapping key is Entity's field name. value is DTO's field name.
 	dtoFieldsMapping map[string]string
@@ -61,7 +61,7 @@ type Reflect[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable] struc
 // It creates a new instance of Entity and copies values from the DTO to the Entity based on field mappings.
 //
 // Parameters:
-// - dto: The DTO to be converted to Entity.
+//   - dto: The DTO to be converted to Entity.
 //
 // Returns:
 // The converted Entity.
@@ -77,7 +77,7 @@ func (c Reflect[Entity, DTO, ID]) ToEntity(dto DTO) Entity {
 // It creates a new instance of DTO and copies values from the Entity to the DTO based on field mappings.
 //
 // Parameters:
-// - entity: The Entity to be converted to DTO.
+//   - entity: The Entity to be converted to DTO.
 //
 // Returns:
 // The converted DTO.
@@ -93,13 +93,13 @@ func (c Reflect[Entity, DTO, ID]) ToDTO(entity Entity) DTO {
 // It iterates over the fields of the destination and sets values from the source based on the provided field mapping.
 //
 // Type parameters:
-// - SRC: Source type.
-// - DST: Destination type.
+//   - SRC: Source type.
+//   - DST: Destination type.
 //
 // Parameters:
-// - src: The source object.
-// - dst: The destination object.
-// - fieldMapping: Map where the key is the destination field name and the value is the source field name.
+//   - src: The source object.
+//   - dst: The destination object.
+//   - fieldMapping: Map where the key is the destination field name and the value is the source field name.
 func reflectCopy[SRC any, DST any](src SRC, dst DST, fieldMapping map[string]string) {
 	// Obtain a reflection Value of the source object.
 	srcVal := reflect.ValueOf(src)

@@ -7,7 +7,7 @@ type Option func(*ScopeBuilder)
 // This function allows overriding default filter builders for specific filter parameters.
 //
 // Parameters:
-// customFilters - A map of filter names to their corresponding custom filter functions.
+//   - customFilters - A map of filter names to their corresponding custom filter functions.
 //
 // Example:
 //
@@ -32,9 +32,8 @@ func WithCustomFilters(customFilters map[string]ScopeBuilderFunc) Option {
 // This function is used to add new filter building capabilities to a ScopeBuilder.
 //
 // Parameters:
-//
-// name - The name under which the ScopeBuilderFunc will be registered.
-// builder - The ScopeBuilderFunc to be registered.
+//   - name - The name under which the ScopeBuilderFunc will be registered.
+//   - builder - The ScopeBuilderFunc to be registered.
 //
 // Example:
 //
@@ -51,8 +50,7 @@ func WithBuilder(name string, builder ScopeBuilderFunc) Option {
 // This function is useful when the field names in Go structs differ from the column names in the database.
 //
 // Parameters:
-//
-// fieldToColMap - A map where keys are struct field names and values are the corresponding database column names.
+//   - fieldToColMap - A map where keys are struct field names and values are the corresponding database column names.
 //
 // Example:
 //

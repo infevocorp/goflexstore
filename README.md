@@ -1,5 +1,13 @@
 # Flex Stores
 
+- [Getting started](#getting-started)
+  - [Installation](#installation)
+- [Usage](#usage)
+- [Features](#features)
+- [Addressing the Limitations of the Repository Pattern with Flex Store](#addressing-the-limitations-of-the-repository-pattern-with-flex-store)
+- [Contribute](#contribute)
+- [License](#license)
+
 Welcome to Flex Store, a revolutionary suite of interfaces tailored for Golang applications. Flex Store stands out with its:
 
 - **Flexibility and Independence:** Our interfaces are crafted to offer unparalleled flexibility and independence. This design enables dynamic query handling and seamless integration with various ORMs and data sources, making your data layer more robust and versatile.
@@ -12,38 +20,48 @@ Welcome to Flex Store, a revolutionary suite of interfaces tailored for Golang a
 
 Whether you are working on a small-scale project or dealing with the intricacies of a large-scale application, Flex Store is equipped to enhance your data management efficiency and effectiveness. Embrace the ease of data layer management with Flex Store, and propel your Golang applications to new heights.
 
-- [Flex Stores](#flex-stores)
-  - [Getting started](#getting-started)
-  - [Features](#features)
-  - [Addressing the Limitations of the Repository Pattern with Flex Store](#addressing-the-limitations-of-the-repository-pattern-with-flex-store)
-  - [Contribute](#contribute)
-  - [License](#license)
+```go
+
+// query
+userStore.List(
+    // list of user older than 18
+    query.Filter("Age", 18).WithOP(query.GT),
+    query.OrderBy("Age", true), // order by age desc
+    query.OrderBy("ID", false), // if same age order by id asc
+)
+```
 
 ## Getting started
 
-1. Get module
+### Installation
 
-    ```bash
-    go get github.com/jkaveri/goflexstore@latest
-    ```
+Get modules
+
+```bash
+go get github.com/jkaveri/goflexstore@latest
+go get github.com/jkaveri/goflexstore/gorm@latest
+```
+
+## Usage
+
+Let's says you are working to implement `User` realted APIs. You can structure the code like
 
 1. define models
 
     ```golang
-    //file: model/user.go
+        //file: model/user.go
 
-    type User struct {
-        ID int64
-        Name string
-    }
+        type User struct {
+            ID int64
+            Name string
+        }
 
-    func(u *User) GetID() int64 {
-        return u.ID
-    }
-
+        func(u *User) GetID() int64 {
+            return u.ID
+        }
     ```
 
-1. define store
+2. define store
 
     ```golang
     //file: store/user.go
@@ -59,43 +77,35 @@ Whether you are working on a small-scale project or dealing with the intricacies
     }
     ```
 
-1. implement store
+3. define dto
 
-    1. get gorm implementation
+    ```golang
+    //file: store/sql/dto/user.go
+    type User struct {
+        ID int64 `gorm:"column:id;primaryKey"`
+        Name string `gorm:"name"`
+    }
 
-        ```bash
-        go get github.com/jkaveri/goflexstore/gorm@latest
-        ```
+    func (u *User) GetID() int64 {
+        return u.ID
+    }
+    ```
 
-    1. define dto
+4. implment user store
 
-        ```golang
-        //file: store/sql/dto/user.go
-        type User struct {
-            ID int64 `gorm:"column:id;primaryKey"`
-            Name string `gorm:"name"`
-        }
-
-        func (u *User) GetID() int64 {
-            return u.ID
-        }
-        ```
-
-    1. implment user store
-
-        ```golang
-        //file: store/sql/user.go
-        type UserStore struct {
-            *gormstore.Store[*model.User, *dto.User, int64]
-        }
+     ```golang
+     //file: store/sql/user.go
+     type UserStore struct {
+         *gormstore.Store[*model.User, *dto.User, int64]
+     }
 
 
-        func NewUserStore(tScope *gormopscope.TransactionScope) *UserStore {
-            return &UserStore{
-                Store: gormstore.New(tScope),
-            }
-        }
-        ```
+     func NewUserStore(tScope *gormopscope.TransactionScope) *UserStore {
+         return &UserStore{
+             Store: gormstore.New(tScope),
+         }
+     }
+     ```
 
 ## Features
 

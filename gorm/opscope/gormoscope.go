@@ -27,8 +27,8 @@ type (
 // This function initializes a TransactionScope with serializable isolation level, intended for write operations.
 //
 // Parameters:
-// - name: A string representing the name of the transaction scope, used as a context key.
-// - rootTx: The root *gorm.DB object to start a new session with specific configurations.
+//   - name: A string representing the name of the transaction scope, used as a context key.
+//   - rootTx: The root *gorm.DB object to start a new session with specific configurations.
 //
 // Returns:
 // A new TransactionScope object with write configuration.
@@ -51,8 +51,8 @@ func NewWriteTransactionScope(name string, rootTx *gorm.DB) *TransactionScope {
 // level and read-only mode, intended for read operations.
 //
 // Parameters:
-// - name: A string representing the name of the transaction scope, used as a context key.
-// - rootTx: The root *gorm.DB object to start a new session with specific configurations.
+//   - name: A string representing the name of the transaction scope, used as a context key.
+//   - rootTx: The root *gorm.DB object to start a new session with specific configurations.
 //
 // Returns:
 // A new TransactionScope object with read-only configuration.
@@ -146,11 +146,11 @@ type TransactionScope struct {
 // level instead of starting a new one.
 //
 // Parameters:
-// - ctx: The current context.Context object.
+//   - ctx: The current context.Context object.
 //
 // Returns:
-// - A new context.Context object containing the transaction scope.
-// - An error if beginning the transaction fails.
+//   - A new context.Context object containing the transaction scope.
+//   - An error if beginning the transaction fails.
 //
 // Example:
 // Starting a transaction scope:
@@ -185,11 +185,11 @@ func (s *TransactionScope) Begin(ctx context.Context) (context.Context, error) {
 // If an error is passed, it triggers a rollback.
 //
 // Parameters:
-// - ctx: The current context.Context object.
-// - err: An error encountered during the transaction, leading to a rollback.
+//   - ctx: The current context.Context object.
+//   - err: An error encountered during the transaction, leading to a rollback.
 //
 // Returns:
-// - An error if committing or rolling back the transaction fails.
+//   - An error if committing or rolling back the transaction fails.
 //
 // Example:
 // Ending a transaction scope:
@@ -234,10 +234,10 @@ func (s *TransactionScope) End(ctx context.Context, err error) error {
 // it returns this transaction. Otherwise, it falls back to the root transaction initially set in the transaction scope.
 //
 // Parameters:
-// - ctx: A context.Context instance which may contain an ongoing transaction.
+//   - ctx: A context.Context instance which may contain an ongoing transaction.
 //
 // Returns:
-// - *gorm.DB: The current transaction if present in the context; otherwise, the root transaction.
+//   - *gorm.DB: The current transaction if present in the context; otherwise, the root transaction.
 //
 // Example:
 // Working with transactions in a context:

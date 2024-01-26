@@ -25,7 +25,7 @@ func (p FilterParam) ParamType() string {
 // This method is useful for changing the comparison operator for an existing FilterParam.
 //
 // Parameters:
-// - op: The new Operator to be used for the filter.
+//   - op: The new Operator to be used for the filter.
 //
 // Returns:
 // A new FilterParam with the updated operator.
@@ -42,15 +42,16 @@ func (p FilterParam) WithOP(op Operator) FilterParam {
 // chain the resulting FilterParam with the WithOP method.
 //
 // Parameters:
-// - fieldName: The name of the field to filter on.
-// - value: The value to compare against the field's value.
+//   - fieldName: The name of the field to filter on.
+//   - value: The value to compare against the field's value.
 //
 // Returns:
 // A new FilterParam with the specified field name, value, and default operator EQ.
 //
 // Examples:
-// - query.Filter("id", 1) creates a filter to check if 'id' equals 1.
-// - query.Filter("id", 1).WithOP(query.GT) creates a filter to check if 'id' is greater than 1.
+//
+//	query.Filter("id", 1) // creates a filter to check if 'id' equals 1.
+//	query.Filter("id", 1).WithOP(query.GT) // creates a filter to check if 'id' is greater than 1.
 func Filter(fieldName string, value any) FilterParam {
 	return FilterParam{
 		Name:     fieldName,
