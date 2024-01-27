@@ -21,13 +21,14 @@ func (p ORParam) ParamType() string {
 }
 
 // OR creates a new ORParam, which is a logical OR combination of the provided filter parameters.
-// This function is used to build queries where you want to match records that satisfy any one of the given filter conditions.
+//
+// This function is used to build queries where you want to match records that satisfy any one of the given filter
+// conditions.
 //
 // Parameters:
 //   - params: A variable number of Param, each of which should be a FilterParam.
 //
-// Returns:
-// An ORParam that encapsulates the provided filter parameters in an OR logic.
+// Returns: An ORParam that encapsulates the provided filter parameters in an OR logic.
 //
 // Example:
 // Using OR to combine filter conditions:

@@ -1,7 +1,10 @@
 package query
 
-// GroupByParam represents a parameter used to group data in a query. It specifies the fields by which the data should be grouped.
-// This is useful in aggregate queries where you need to group data by certain fields before applying aggregate functions.
+// GroupByParam represents a parameter used to group data in a query. It specifies the fields by which the data should
+// be grouped.
+//
+// This is useful in aggregate queries where you need to group data by certain fields before applying
+// aggregate functions.
 //
 // Fields:
 //   - Names: A slice of field names to group by.
@@ -22,7 +25,8 @@ func (p GroupByParam) ParamType() string {
 	return TypeGroupBy
 }
 
-// WithOption returns a new GroupByParam instance with the specified option while preserving the existing group by names and having conditions.
+// WithOption returns a new GroupByParam instance with the specified option while preserving the existing group by
+// names and having conditions.
 // This method is useful for adding additional grouping options to an existing GroupByParam.
 //
 // Parameters:
@@ -37,7 +41,8 @@ func (p GroupByParam) WithOption(option string) GroupByParam {
 	}
 }
 
-// WithHaving returns a new GroupByParam with the specified having conditions while preserving the existing group by names and options.
+// WithHaving returns a new GroupByParam with the specified having conditions while preserving the existing group by
+// names and options.
 // This method is useful for adding 'HAVING' clause conditions to an existing GroupByParam.
 //
 // Parameters:
@@ -70,7 +75,8 @@ func (p GroupByParam) WithHaving(params ...FilterParam) GroupByParam {
 //		query.GroupBy("Birthday"),
 //	)
 //
-// This example creates query parameters to filter records where 'Birthday' is greater than '2000-01-01' and groups the results by 'Birthday'.
+// This example creates query parameters to filter records where 'Birthday' is greater than '2000-01-01' and groups the
+// results by 'Birthday'.
 func GroupBy(names ...string) GroupByParam {
 	return GroupByParam{
 		Names: names,

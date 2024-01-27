@@ -14,7 +14,8 @@ const (
 	TypeSelect = "select"
 
 	// TypeOR represents the type name for OR logical operator parameters in a query.
-	// These parameters are used to combine multiple conditions with OR logic, where any condition being true will result in a match.
+	// These parameters are used to combine multiple conditions with OR logic, where any condition being true will
+	// result in a match.
 	TypeOR = "or"
 
 	// TypeOrderBy represents the type name for order-by parameters in a query.
