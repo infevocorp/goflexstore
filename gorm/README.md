@@ -1,4 +1,4 @@
-# Flexstore GORM Integration
+# Flex Store GORM Integration [![Go Reference](https://pkg.go.dev/badge/github.com/jkaveri/goflexstore/gorm.svg)](https://pkg.go.dev/github.com/jkaveri/goflexstore/gorm)
 
 This module (`github.com/jkaveri/goflexstore/gorm`) provides a seamless integration of the Flexstore interfaces with GORM, the popular ORM library for Golang. It's designed to offer a straightforward way to implement Flexstore's powerful data management capabilities in Golang applications using GORM.
 
