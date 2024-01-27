@@ -1,4 +1,4 @@
-# Flex Stores
+# Flex Stores [![Go Reference](https://pkg.go.dev/badge/github.com/jkaveri/goflexstore.svg)](https://pkg.go.dev/github.com/jkaveri/goflexstore)
 
 - [Getting started](#getting-started)
   - [Installation](#installation)
