@@ -35,7 +35,8 @@ func (p PaginateParam) ParamType() string {
 //	  query.Paginate(10, 10),
 //	)
 //
-// In this example, the query will skip the first 10 items and then fetch the next 10 items, effectively returning items 11 to 20.
+// In this example, the query will skip the first 10 items and then fetch the next 10 items, effectively returning
+// items 11 to 20.
 func Paginate(offset, limit int) Param {
 	return PaginateParam{
 		Offset: offset,

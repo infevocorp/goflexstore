@@ -8,8 +8,8 @@ replace (
 )
 
 require (
-	github.com/jkaveri/goflexstore v0.0.1
-	github.com/jkaveri/goflexstore/gorm v0.0.1
+	github.com/jkaveri/goflexstore v1.0.2
+	github.com/jkaveri/goflexstore/gorm v1.0.2
 )
 
 require (

@@ -8,10 +8,11 @@
 // where dynamic query generation based on user input or application logic is required.
 //
 // Key Features:
-// - Type-safe query parameters: Ensures that only valid query structures are created, reducing runtime errors.
-// - Extensible design: Easy to extend with new parameter types as needed.
-// - Readability: The query builder syntax is designed to be readable and easy to understand.
-// - Integration with stores: Seamlessly integrates with various data store implementations, providing a unified querying interface.
+//   - Type-safe query parameters: Ensures that only valid query structures are created, reducing runtime errors.
+//   - Extensible design: Easy to extend with new parameter types as needed.
+//   - Readability: The query builder syntax is designed to be readable and easy to understand.
+//   - Integration with stores: Seamlessly integrates with various data store implementations, providing a unified
+//     querying interface.
 //
 // Example Usage:
 // The following example demonstrates the use of the query package to build a complex query
