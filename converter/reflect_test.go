@@ -3,6 +3,7 @@ package converter_test
 import (
 	"database/sql"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -21,18 +22,65 @@ func (e UnMatchUser) GetID() int {
 func Test_Converter_ToEntity(t *testing.T) {
 	t.Run("should-convert-DTO-to-Entity", func(t *testing.T) {
 		converter := converter.NewReflect[User, UserDTO, int](nil)
+		now := time.Now()
 
 		dto := UserDTO{
-			ID:       1,
-			Name:     "name",
-			Age:      10,
-			Disabled: sql.NullBool{Bool: false, Valid: true},
-			IsAdmin:  &sql.NullBool{Bool: true, Valid: true},
+			ID:        1,
+			Name:      "name",
+			Age:       10,
+			Disabled:  sql.NullBool{Bool: false, Valid: true},
+			IsAdmin:   &sql.NullBool{Bool: true, Valid: true},
+			CreatedAt: sql.NullTime{Valid: true, Time: now},
+			Referer: &UserDTO{
+				ID:        2,
+				Name:      "referer",
+				Age:       43,
+				Disabled:  sql.NullBool{Bool: false, Valid: true},
+				IsAdmin:   &sql.NullBool{Bool: true, Valid: true},
+				CreatedAt: sql.NullTime{Valid: true, Time: now},
+			},
+			Friends: []*UserDTO{
+				{
+					ID:        3,
+					Name:      "friend1",
+					Age:       32,
+					Disabled:  sql.NullBool{Bool: false, Valid: true},
+					IsAdmin:   &sql.NullBool{Bool: true, Valid: true},
+					CreatedAt: sql.NullTime{Valid: true, Time: now},
+				},
+			},
 		}
 
 		entity := converter.ToEntity(dto)
 
-		assert.Equal(t, User{ID: 1, Name: "name", Age: 10, IsAdmin: true}, entity)
+		assert.Equal(t,
+			User{
+				ID:        1,
+				Name:      "name",
+				Age:       10,
+				IsAdmin:   true,
+				CreatedAt: now,
+
+				Referer: &User{
+					ID:        2,
+					Name:      "referer",
+					Age:       43,
+					IsAdmin:   true,
+					CreatedAt: now,
+				},
+				Friends: []*User{
+					{
+						ID:        3,
+						Name:      "friend1",
+						Age:       32,
+						Disabled:  false,
+						IsAdmin:   true,
+						CreatedAt: now,
+					},
+				},
+			},
+			entity,
+		)
 	})
 
 	t.Run("map-from-pointer-type", func(t *testing.T) {
@@ -111,18 +159,26 @@ func Test_ToMany(t *testing.T) {
 
 func Test_Converter_ToDTO(t *testing.T) {
 	t.Run("should-convert-Entity-to-DTO", func(t *testing.T) {
+		now := time.Now()
 		conv := converter.NewReflect[User, UserDTO, int](nil)
 
-		entity := User{ID: 1, Name: "name", Age: 10, Disabled: true}
+		entity := User{
+			ID: 1, Name: "name",
+			Age:       10,
+			Disabled:  true,
+			IsAdmin:   true,
+			CreatedAt: now,
+		}
 
 		dto := conv.ToDTO(entity)
 
 		assert.Equal(t, UserDTO{
-			ID:       1,
-			Name:     "name",
-			Age:      10,
-			IsAdmin:  &sql.NullBool{Valid: true, Bool: false},
-			Disabled: sql.NullBool{Valid: true, Bool: true},
+			ID:        1,
+			Name:      "name",
+			Age:       10,
+			IsAdmin:   &sql.NullBool{Valid: true, Bool: true},
+			Disabled:  sql.NullBool{Valid: true, Bool: true},
+			CreatedAt: sql.NullTime{Valid: true, Time: now},
 		}, dto)
 	})
 }
