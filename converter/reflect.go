@@ -92,15 +92,11 @@ func (c Reflect[Entity, DTO, ID]) ToDTO(entity Entity) DTO {
 // reflectCopy performs the actual copying of values from the source to the destination.
 // It iterates over the fields of the destination and sets values from the source based on the provided field mapping.
 //
-// Type parameters:
-//   - SRC: Source type.
-//   - DST: Destination type.
-//
 // Parameters:
 //   - src: The source object.
 //   - dst: The destination object.
 //   - fieldMapping: Map where the key is the destination field name and the value is the source field name.
-func reflectCopy[SRC any, DST any](src SRC, dst DST, fieldMapping map[string]string) {
+func reflectCopy(src any, dst any, fieldMapping map[string]string) {
 	// Obtain a reflection Value of the source object.
 	srcVal := reflect.ValueOf(src)
 
@@ -167,7 +163,7 @@ func reflectCopy[SRC any, DST any](src SRC, dst DST, fieldMapping map[string]str
 		}
 
 		// If the source field is a pointer but nil, skip copying.
-		if srcField.Kind() == reflect.Ptr && srcField.IsNil() {
+		if (srcField.Kind() == reflect.Ptr || srcField.Kind() == reflect.Slice) && srcField.IsNil() {
 			continue
 		}
 
@@ -195,7 +191,8 @@ func reverseMapping[K comparable, V comparable](m map[K]V) map[V]K {
 }
 
 func setValue(srcVal, dstVal reflect.Value) bool {
-	if srcVal.Type().Kind() == dstVal.Kind() {
+	// same type
+	if srcVal.Type() == dstVal.Type() {
 		dstVal.Set(srcVal)
 		return true
 	}
@@ -205,6 +202,14 @@ func setValue(srcVal, dstVal reflect.Value) bool {
 	}
 
 	if ok := tryIfTargetTypeIsValuer(srcVal, dstVal); ok {
+		return true
+	}
+
+	if ok := tryIfStruct(srcVal, dstVal); ok {
+		return true
+	}
+
+	if ok := tryIfSlice(srcVal, dstVal); ok {
 		return true
 	}
 
@@ -253,43 +258,74 @@ func tryIfTargetTypeIsValuer(src reflect.Value, dst reflect.Value) bool {
 		return false
 	}
 
+	// execute Value() method
 	results := src.MethodByName("Value").Call([]reflect.Value{})
-	value := results[0].Interface()
 
-	switch v := value.(type) {
-	case nil:
-		break
-	case bool:
-		dst.SetBool(v)
-	case int64:
-		dst.SetInt(v)
-	case int:
-		dst.SetInt(int64(v))
-	case int32:
-		dst.SetInt(int64(v))
-	case int16:
-		dst.SetInt(int64(v))
-	case int8:
-		dst.SetInt(int64(v))
-	case uint64:
-		dst.SetUint(v)
-	case uint:
-		dst.SetUint(uint64(v))
-	case uint32:
-		dst.SetUint(uint64(v))
-	case uint16:
-		dst.SetUint(uint64(v))
-	case uint8:
-		dst.SetUint(uint64(v))
-	case float64:
-		dst.SetFloat(v)
-	case float32:
-		dst.SetFloat(float64(v))
-	case string:
-		dst.SetString(v)
-	case []byte:
-		dst.SetBytes(v)
+	// check if Value() method returns nil
+	value := results[0].Interface()
+	if value == nil {
+		return true
+	}
+
+	// set value if src and dst have the same type
+	if valueOf := reflect.ValueOf(value); valueOf.Type() == dst.Type() {
+		dst.Set(valueOf)
 	}
 
 	return true
+}
+
+func tryIfStruct(src, dst reflect.Value) bool {
+	srcType := src.Type()
+	dstType := dst.Type()
+
+	if getStructType(srcType).Kind() != reflect.Struct || getStructType(dstType).Kind() != reflect.Struct {
+		return false
+	}
+
+	if dst.IsNil() {
+		dst.Set(reflect.New(getStructType(dstType)))
+	}
+
+	reflectCopy(src.Interface(), dst.Interface(), nil)
+
+	return true
+}
+
+func tryIfSlice(src, dst reflect.Value) bool {
+	srcType := src.Type()
+	dstType := dst.Type()
+
+	if srcType.Kind() != reflect.Slice || dstType.Kind() != reflect.Slice {
+		return false
+	}
+
+	n := src.Len()
+
+	tmpArr := reflect.MakeSlice(dstType, n, n)
+
+	for i := 0; i < n; i++ {
+		srcElem := src.Index(i)
+		dstEl := tmpArr.Index(i)
+
+		if dstEl.Type().Kind() != reflect.Ptr {
+			dstEl = dstEl.Addr()
+		} else {
+			dstEl.Set(reflect.New(dstEl.Type().Elem()))
+		}
+
+		reflectCopy(srcElem.Interface(), dstEl.Interface(), nil)
+	}
+
+	dst.Set(tmpArr)
+
+	return true
+}
+
+func getStructType(src reflect.Type) reflect.Type {
+	if src.Kind() == reflect.Ptr {
+		src = src.Elem()
+	}
+
+	return src
 }
