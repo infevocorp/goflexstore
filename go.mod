@@ -2,6 +2,12 @@ module github.com/jkaveri/goflexstore
 
 go 1.20
 
+retract v0.0.1
+
+retract v1.0.0
+
+retract [v1.0.1, v1.0.6]
+
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	gorm.io/driver/mysql v1.5.2
