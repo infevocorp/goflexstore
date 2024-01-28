@@ -44,7 +44,7 @@ import (
 // creates a map where 'ID' maps to 'id', 'FirstName' maps to 'first_name', and 'LastName' maps to 'last_name'.
 func FieldToColMap(dto any) map[string]string {
 	var (
-		dtoTypeOf = reflect.TypeOf(dto)
+		dtoTypeOf = getStructType(dto)
 		index     = map[string]string{}
 		numField  = dtoTypeOf.NumField()
 	)
@@ -64,4 +64,13 @@ func FieldToColMap(dto any) map[string]string {
 	}
 
 	return index
+}
+
+func getStructType(dto any) reflect.Type {
+	dtoTypeOf := reflect.TypeOf(dto)
+	if dtoTypeOf.Kind() == reflect.Ptr {
+		dtoTypeOf = dtoTypeOf.Elem()
+	}
+
+	return dtoTypeOf
 }
