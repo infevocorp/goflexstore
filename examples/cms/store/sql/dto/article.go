@@ -5,14 +5,19 @@ import (
 )
 
 type Article struct {
-	ID        int64        `gorm:"column:id;primaryKey;uuid"`
-	Title     string       `gorm:"column:title"`
-	Content   string       `gorm:"column:content"`
-	Tags      []*Tag       `gorm:"column:tags"`
-	AuthorID  int64        `gorm:"column:author_id"`
-	Author    *User        `gorm:"foreignkey:AuthorID"`
+	ID       int64  `gorm:"column:id;primaryKey;autoIncrement"`
+	Title    string `gorm:"column:title"`
+	Content  string `gorm:"column:content"`
+	AuthorID int64  `gorm:"column:author_id"`
+
 	CreatedAt sql.NullTime `gorm:"column:created_at"`
 	UpdatedAt sql.NullTime `gorm:"column:updated_at"`
+
+	Author *User `gorm:"foreignkey:AuthorID"`
+
+	// Tags is the list of tags that this article has.
+	//nolint:revive
+	Tags []*Tag `gorm:"column:tags;many2many:article_tags;foreignKey:ID;joinForeignKey:ArticleID;references:ID;joinReferences:TagID"`
 }
 
 func (a Article) GetID() int64 {
