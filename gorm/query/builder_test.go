@@ -293,6 +293,31 @@ func Test_Builder_Build(t *testing.T) {
 						AddRow(2, "jenny", 20))
 			},
 		},
+
+		{
+			name: "lock-for-update",
+			args: args{
+				params: query.NewParams(
+					query.Select("Name", "Age"),
+					query.ClauseLockForUpdate(),
+				),
+			},
+			expects: expects{
+				err: false,
+				users: []User{
+					{
+						ID:   0,
+						Name: "john",
+						Age:  20,
+					},
+				},
+			},
+			mock: func(d deps) {
+				d.sql.ExpectQuery(regexp.QuoteMeta("SELECT `name`,`age` FROM `users` FOR UPDATE")).
+					WillReturnRows(sqlmock.NewRows([]string{"name", "age"}).
+						AddRow("john", 20))
+			},
+		},
 	}
 
 	for _, tt := range tests {

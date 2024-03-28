@@ -29,4 +29,6 @@ const (
 	// TypePreload represents the type name for preload parameters in a query.
 	// These parameters specify related entities or fields that should be loaded along with the primary query results.
 	TypePreload = "preload"
+
+	TypeClauseLockUpdate = "clauselockupdate"
 )

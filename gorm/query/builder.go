@@ -27,13 +27,14 @@ func NewBuilder(options ...Option) *ScopeBuilder {
 	}
 
 	s.Registry = ScopeBuilderRegistry{
-		query.TypeFilter:   s.Filter,
-		query.TypeOR:       s.OR,
-		query.TypePaginate: s.Paginate,
-		query.TypeGroupBy:  s.GroupBy,
-		query.TypeSelect:   s.Select,
-		query.TypeOrderBy:  s.OrderBy,
-		query.TypePreload:  s.Preload,
+		query.TypeFilter:           s.Filter,
+		query.TypeOR:               s.OR,
+		query.TypePaginate:         s.Paginate,
+		query.TypeGroupBy:          s.GroupBy,
+		query.TypeSelect:           s.Select,
+		query.TypeOrderBy:          s.OrderBy,
+		query.TypePreload:          s.Preload,
+		query.TypeClauseLockUpdate: s.ClauseLockUpdate,
 	}
 
 	for _, option := range options {
@@ -203,6 +204,14 @@ func (b *ScopeBuilder) Preload(param query.Param) ScopeFunc {
 		}
 
 		return tx.Preload(p.Name, args...)
+	}
+}
+
+// ClauseLockUpdate constructs a GORM scope for a locking clause query parameter.
+// It adds a locking clause to the main query.
+func (b *ScopeBuilder) ClauseLockUpdate(param query.Param) ScopeFunc {
+	return func(tx *gorm.DB) *gorm.DB {
+		return tx.Clauses(clause.Locking{Strength: "UPDATE"})
 	}
 }
 
