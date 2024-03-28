@@ -5,8 +5,9 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/jkaveri/goflexstore/examples/cms/filters"
 	"github.com/jkaveri/goflexstore/query"
+
+	"github.com/jkaveri/goflexstore/examples/cms/filters"
 )
 
 type ListArticlesRequest struct {
@@ -29,6 +30,8 @@ func (h *Handler) ListArticles(c echo.Context) error {
 
 	params := []query.Param{
 		query.Paginate(req.Offset, req.Limit),
+		query.Preload("Author"),
+		query.Preload("Tags"),
 	}
 
 	if req.AuthorID > 0 {
