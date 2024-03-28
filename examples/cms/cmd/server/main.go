@@ -7,9 +7,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/pkg/errors"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
@@ -23,7 +25,7 @@ import (
 )
 
 func main() {
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	stores := newStores(ctx)
@@ -34,18 +36,34 @@ func main() {
 	// register handlers
 	handlers.Register(stores, e)
 
-	log.Println("Starting server on port 8080")
+	// Initialize the server in a goroutine so that it doesn't block.
+	go func() {
+		if err := e.StartServer(&http.Server{
+			Addr: ":8080",
+			BaseContext: func(net.Listener) context.Context {
+				return context.Background()
+			},
+			ReadTimeout:  time.Duration(5) * time.Second,
+			WriteTimeout: time.Duration(5) * time.Second,
+		}); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Panicf("server error: %v", err)
+		}
+	}()
 
-	if err := e.StartServer(&http.Server{
-		Addr: ":8080",
-		BaseContext: func(net.Listener) context.Context {
-			return ctx
-		},
-		ReadTimeout:  time.Duration(5) * time.Second,
-		WriteTimeout: time.Duration(5) * time.Second,
-	}); err != nil {
-		log.Panicf("Cannot start server: %+v", err)
+	// Block until we receive our signal.
+	<-ctx.Done()
+
+	shutDownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Doesn't block if no connections, but will otherwise wait
+	// until the timeout deadline.
+	log.Println("Shutting down server...")
+	if err := e.Shutdown(shutDownCtx); err != nil {
+		log.Fatalf("Could not gracefully shutdown the server: %+v", err)
 	}
+
+	log.Println("Server shut down gracefully")
 }
 
 func newStores(ctx context.Context) store.Stores {

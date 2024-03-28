@@ -13,11 +13,11 @@ type Article struct {
 	CreatedAt sql.NullTime `gorm:"column:created_at"`
 	UpdatedAt sql.NullTime `gorm:"column:updated_at"`
 
-	Author *User `gorm:"foreignkey:AuthorID"`
+	Author *User `gorm:"foreignKey:AuthorID"`
 
 	// Tags is the list of tags that this article has.
 	//nolint:revive
-	Tags []*Tag `gorm:"column:tags;many2many:article_tags;foreignKey:ID;joinForeignKey:ArticleID;references:ID;joinReferences:TagID"`
+	Tags []*Tag `gorm:"many2many:article_tags;foreignKey:ID;joinForeignKey:ArticleID;references:ID;joinReferences:TagID"`
 }
 
 func (a Article) GetID() int64 {
