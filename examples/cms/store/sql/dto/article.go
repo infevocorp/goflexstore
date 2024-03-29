@@ -1,7 +1,7 @@
 package dto
 
 import (
-	"database/sql"
+	"time"
 )
 
 type Article struct {
@@ -10,14 +10,14 @@ type Article struct {
 	Content  string `gorm:"column:content"`
 	AuthorID int64  `gorm:"column:author_id"`
 
-	CreatedAt sql.NullTime `gorm:"column:created_at"`
-	UpdatedAt sql.NullTime `gorm:"column:updated_at"`
+	CreatedAt time.Time `gorm:"column:created_at"`
+	UpdatedAt time.Time `gorm:"column:updated_at"`
 
-	Author *User `gorm:"foreignkey:AuthorID"`
+	Author *User `gorm:"foreignKey:AuthorID"`
 
 	// Tags is the list of tags that this article has.
 	//nolint:revive
-	Tags []*Tag `gorm:"column:tags;many2many:article_tags;foreignKey:ID;joinForeignKey:ArticleID;references:ID;joinReferences:TagID"`
+	Tags []*Tag `gorm:"many2many:article_tags;foreignKey:ID;joinForeignKey:ArticleID;references:ID;joinReferences:TagID"`
 }
 
 func (a Article) GetID() int64 {
