@@ -30,5 +30,7 @@ const (
 	// These parameters specify related entities or fields that should be loaded along with the primary query results.
 	TypePreload = "preload"
 
+	// TypeClauseLockUpdate represents the type name for the lock-for-update clause parameters in a query.
+	// These parameters specify the lock mode to be used: "FOR UPDATE".
 	TypeClauseLockUpdate = "clauselockupdate"
 )

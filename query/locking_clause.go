@@ -15,6 +15,17 @@ func (p ClauseLockForUpdateParam) ParamType() string {
 //
 // Returns:
 // A new ClauseLockForUpdateParam.
+//
+// Example:
+// Using ClauseLockForUpdate in a query:
+//
+//	query.NewParams(
+//		query.Filter("Birthday", time.Parse("2000-01-01", "2006-01-02")).WithOP(query.GT),
+//		query.ClauseLockForUpdate(),
+//	)
+//
+// This example creates query parameters to filter records where 'Birthday' is greater than '2000-01-01' and locks all
+// the matching rows to be updated within the current transaction.
 func ClauseLockForUpdate() Param {
 	return ClauseLockForUpdateParam{}
 }
