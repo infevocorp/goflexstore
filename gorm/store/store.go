@@ -73,7 +73,12 @@ func (s *Store[Entity, DTO, ID]) Get(ctx context.Context, params ...query.Param)
 	if err := s.getTx(ctx).
 		Scopes(scopes...).
 		First(&dto).Error; err != nil {
-		return *new(Entity), nil
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return *new(Entity), store.ErrorNotFound
+		}
+
+		return *new(Entity), err
 	}
 
 	return s.Converter.ToEntity(dto), nil
