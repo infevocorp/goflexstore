@@ -41,7 +41,7 @@ func main() {
 		if err := e.StartServer(&http.Server{
 			Addr: ":8080",
 			BaseContext: func(net.Listener) context.Context {
-				return context.Background()
+				return ctx
 			},
 			ReadTimeout:  time.Duration(5) * time.Second,
 			WriteTimeout: time.Duration(5) * time.Second,
