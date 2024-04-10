@@ -70,8 +70,13 @@ func (s *Store[Entity, DTO, ID]) Get(ctx context.Context, params ...query.Param)
 		scopes = s.ScopeBuilder.Build(query.NewParams(params...))
 	)
 
-	if err := s.getTx(ctx).
-		Scopes(scopes...).
+	tx := s.getTx(ctx).Scopes(scopes...)
+
+	if tx.Error != nil {
+		return *new(Entity), tx.Error
+	}
+
+	if err := tx.
 		First(&dto).Error; err != nil {
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -92,8 +97,13 @@ func (s *Store[Entity, DTO, ID]) List(ctx context.Context, params ...query.Param
 		scopes = s.ScopeBuilder.Build(query.NewParams(params...))
 	)
 
-	if err := s.getTx(ctx).
-		Scopes(scopes...).Find(&dtos).Error; err != nil {
+	tx := s.getTx(ctx).Scopes(scopes...)
+
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	if err := tx.Find(&dtos).Error; err != nil {
 		return nil, err
 	}
 
@@ -108,9 +118,13 @@ func (s *Store[Entity, DTO, ID]) Count(ctx context.Context, params ...query.Para
 		scopes = s.ScopeBuilder.Build(query.NewParams(params...))
 	)
 
-	if err := s.getTx(ctx).
-		Scopes(scopes...).
-		Count(&count).Error; err != nil {
+	tx := s.getTx(ctx).Scopes(scopes...)
+
+	if tx.Error != nil {
+		return 0, tx.Error
+	}
+
+	if err := tx.Count(&count).Error; err != nil {
 		return 0, err
 	}
 
@@ -125,7 +139,13 @@ func (s *Store[Entity, DTO, ID]) Exists(ctx context.Context, params ...query.Par
 		scopes = s.ScopeBuilder.Build(query.NewParams(params...))
 	)
 
-	if err := s.getTx(ctx).Scopes(scopes...).
+	tx := s.getTx(ctx).Scopes(scopes...)
+
+	if tx.Error != nil {
+		return false, tx.Error
+	}
+
+	if err := tx.
 		Limit(1).
 		Count(&count).Error; err != nil {
 		return false, err
@@ -170,6 +190,10 @@ func (s *Store[Entity, DTO, ID]) Update(ctx context.Context, entity Entity, para
 	if len(params) > 0 {
 		scopes := s.ScopeBuilder.Build(query.NewParams(params...))
 		tx = tx.Scopes(scopes...)
+
+		if tx.Error != nil {
+			return tx.Error
+		}
 	}
 
 	return tx.Select("*").Updates(&dto).Error
@@ -182,7 +206,13 @@ func (s *Store[Entity, DTO, ID]) PartialUpdate(ctx context.Context, entity Entit
 	dto := s.Converter.ToDTO(entity)
 	scopes := s.ScopeBuilder.Build(query.NewParams(params...))
 
-	return s.getTx(ctx).Scopes(scopes...).Updates(dto).Error
+	tx := s.getTx(ctx).Scopes(scopes...)
+
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	return tx.Updates(dto).Error
 }
 
 // Delete removes entities from the store based on the provided query parameters.
@@ -193,9 +223,13 @@ func (s *Store[Entity, DTO, ID]) Delete(ctx context.Context, params ...query.Par
 		scopes = s.ScopeBuilder.Build(query.NewParams(params...))
 	)
 
-	if err := s.getTx(ctx).
-		Scopes(scopes...).
-		Delete(&dto).Error; err != nil {
+	tx := s.getTx(ctx).Scopes(scopes...)
+
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	if err := tx.Delete(&dto).Error; err != nil {
 		return err
 	}
 
