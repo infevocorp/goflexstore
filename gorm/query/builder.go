@@ -7,6 +7,7 @@
 package gormquery
 
 import (
+	"errors"
 	"strings"
 
 	"gorm.io/gorm"
@@ -217,6 +218,8 @@ func (b *ScopeBuilder) ClauseLockUpdate(param query.Param) ScopeFunc {
 		}
 	default:
 		return func(tx *gorm.DB) *gorm.DB {
+			_ = tx.AddError(errors.New("invalid lock clause"))
+
 			return tx
 		}
 	}
