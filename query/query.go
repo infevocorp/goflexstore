@@ -27,7 +27,7 @@ func (p Params) Params() []Param {
 // Returns:
 // A slice of Param that match the specified paramType.
 func (p Params) Get(paramType string) []Param {
-	params := []Param{}
+	params := make([]Param, 0)
 
 	for _, param := range p.params {
 		if param.ParamType() == paramType {

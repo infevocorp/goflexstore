@@ -62,6 +62,20 @@ func Test_Store_Get(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "with-error",
+			args: args{
+				ctx: context.Background(),
+				params: []query.Param{
+					filters.IDs(1),
+					query.WithLock(4242), // invalid lock type
+				},
+			},
+			mock: func(d deps) {},
+			want: expecteds{
+				err: true,
+			},
+		},
 	}
 
 	for i := range tests {
