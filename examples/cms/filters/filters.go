@@ -1,6 +1,6 @@
 package filters
 
-import "github.com/jkaveri/goflexstore/query"
+import "github.com/infevocorp/goflexstore/query"
 
 func Tag(tag ...string) query.FilterParam {
 	return query.Filter("tag", tag)

@@ -3,7 +3,7 @@ package handlers
 import (
 	"github.com/labstack/echo/v4"
 
-	"github.com/jkaveri/goflexstore/examples/cms/store"
+	"github.com/infevocorp/goflexstore/examples/cms/store"
 )
 
 type Handler struct {

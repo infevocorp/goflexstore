@@ -1,8 +1,8 @@
 package sql
 
 import (
-	"github.com/jkaveri/goflexstore/examples/cms/store"
-	gormopscope "github.com/jkaveri/goflexstore/gorm/opscope"
+	"github.com/infevocorp/goflexstore/examples/cms/store"
+	gormopscope "github.com/infevocorp/goflexstore/gorm/opscope"
 )
 
 func NewStores(scope *gormopscope.TransactionScope) store.Stores {

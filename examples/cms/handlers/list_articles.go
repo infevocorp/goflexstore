@@ -5,9 +5,9 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/jkaveri/goflexstore/query"
+	"github.com/infevocorp/goflexstore/query"
 
-	"github.com/jkaveri/goflexstore/examples/cms/filters"
+	"github.com/infevocorp/goflexstore/examples/cms/filters"
 )
 
 type ListArticlesRequest struct {

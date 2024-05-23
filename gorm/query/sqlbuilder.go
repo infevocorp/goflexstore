@@ -7,7 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/jkaveri/goflexstore/query"
+	"github.com/infevocorp/goflexstore/query"
 )
 
 // buildWhere constructs a GORM-compatible WHERE clause based on the provided field name, operator, and value.

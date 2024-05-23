@@ -1,6 +1,6 @@
 package converter
 
-import "github.com/jkaveri/goflexstore/store"
+import "github.com/infevocorp/goflexstore/store"
 
 // Converter is an interface that defines methods for converting between a DTO (Data Transfer Object)
 // and an Entity. It is a generic interface, allowing for flexible implementation for various types.

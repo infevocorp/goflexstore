@@ -1,8 +1,8 @@
 // Package gormquery provides utilities to construct GORM scopes based on query parameters
-// defined in github.com/jkaveri/goflexstore/query. This package allows for flexible and reusable
+// defined in github.com/infevocorp/goflexstore/query. This package allows for flexible and reusable
 // query building for GORM, enhancing code modularity and reusability.
 //
-// The package is mainly utilized in the github.com/jkaveri/flexstore/store/gorm package to
+// The package is mainly utilized in the github.com/infevocorp/flexstore/store/gorm package to
 // create a generic, reusable store that interfaces with GORM for database operations.
 package gormquery
 
@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"github.com/jkaveri/goflexstore/query"
+	"github.com/infevocorp/goflexstore/query"
 )
 
 // NewBuilder creates a new ScopeBuilder. It accepts various options that can modify the

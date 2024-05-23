@@ -1,10 +1,10 @@
 package sql
 
 import (
-	"github.com/jkaveri/goflexstore/examples/cms/model"
-	"github.com/jkaveri/goflexstore/examples/cms/store/sql/dto"
-	gormopscope "github.com/jkaveri/goflexstore/gorm/opscope"
-	gormstore "github.com/jkaveri/goflexstore/gorm/store"
+	"github.com/infevocorp/goflexstore/examples/cms/model"
+	"github.com/infevocorp/goflexstore/examples/cms/store/sql/dto"
+	gormopscope "github.com/infevocorp/goflexstore/gorm/opscope"
+	gormstore "github.com/infevocorp/goflexstore/gorm/store"
 )
 
 type UserStore struct {

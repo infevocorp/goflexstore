@@ -1,4 +1,4 @@
-module github.com/jkaveri/goflexstore
+module github.com/infevocorp/goflexstore
 
 go 1.20
 

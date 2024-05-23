@@ -8,7 +8,7 @@
     "go.formatFlags": [],
     "gopls": {
         "formatting.gofumpt": true,
-        "formatting.local": "github.com/jkaveri/goflexstore",
+        "formatting.local": "github.com/infevocorp/goflexstore",
         "ui.documentation.hoverKind": "FullDocumentation"
     }
 }

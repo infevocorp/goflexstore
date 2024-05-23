@@ -1,10 +1,10 @@
-module github.com/jkaveri/goflexstore/examples/cms
+module github.com/infevocorp/goflexstore/examples/cms
 
 go 1.21.6
 
 require (
-	github.com/jkaveri/goflexstore v1.0.7
-	github.com/jkaveri/goflexstore/gorm v1.0.7
+	github.com/infevocorp/goflexstore v1.0.7
+	github.com/infevocorp/goflexstore/gorm v1.0.7
 	gorm.io/driver/sqlite v1.5.4
 )
 
