@@ -4,12 +4,14 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/go-sql-driver/mysql v1.7.0 h1:ueSltNNllEqE3qcWBTD0iQd3IpL/6U+mJxLkazJ7YPc=
 github.com/go-sql-driver/mysql v1.7.0/go.mod h1:OXbVy3sEdcQ2Doequ6Z5BW6fXNQTmx+9S1MCJN5yJMI=
+github.com/infevocorp/goflexstore v1.0.9 h1:0U5AeVUnJM05WYR81BapAxhkEfgzcAJzHLmHeWOWMBo=
+github.com/infevocorp/goflexstore v1.0.9/go.mod h1:1ed88TsGO3u48/aX89o+Z6OeoApPWnuojcQp80/kzy0=
+github.com/infevocorp/goflexstore v1.0.10 h1:W45oUGQ5zWJIHIAYz0ZwnLwsmCQi2dD529HtTKl9kJc=
+github.com/infevocorp/goflexstore v1.0.10/go.mod h1:DpwkWpuK4QCw3sfWyLGXvZqHvU5zRC0dGU4eRB4Xqyw=
 github.com/jinzhu/inflection v1.0.0 h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD/E=
 github.com/jinzhu/inflection v1.0.0/go.mod h1:h+uFLlag+Qp1Va5pdKtLDYj+kHp5pxUVkryuEj+Srlc=
 github.com/jinzhu/now v1.1.5 h1:/o9tlHleP7gOFmsnYNz3RGnqzefHA47wQpKrrdTIwXQ=
 github.com/jinzhu/now v1.1.5/go.mod h1:d3SSVoowX0Lcu0IBviAWJpolVfI5UJVZZ7cO71lE/z8=
-github.com/infevocorp/goflexstore v1.0.9 h1:0U5AeVUnJM05WYR81BapAxhkEfgzcAJzHLmHeWOWMBo=
-github.com/infevocorp/goflexstore v1.0.9/go.mod h1:1ed88TsGO3u48/aX89o+Z6OeoApPWnuojcQp80/kzy0=
 github.com/kisielk/sqlstruct v0.0.0-20201105191214-5f3e10d3ab46/go.mod h1:yyMNCyc/Ib3bDTKd379tNMpB/7/H5TjM2Y9QJ5THLbE=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
