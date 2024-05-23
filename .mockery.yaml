@@ -8,6 +8,6 @@ mockname: "{{.InterfaceName}}"
 outpkg: "mock{{.PackageName}}"
 filename: "{{.InterfaceName}}.go"
 packages:
-  github.com/jkaveri/goflexstore:
+  github.com/infevocorp/goflexstore:
     config:
       recursive: true

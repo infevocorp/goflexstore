@@ -7,12 +7,12 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"github.com/jkaveri/goflexstore/converter"
-	gormopscope "github.com/jkaveri/goflexstore/gorm/opscope"
-	gormquery "github.com/jkaveri/goflexstore/gorm/query"
-	gormutils "github.com/jkaveri/goflexstore/gorm/utils"
-	"github.com/jkaveri/goflexstore/query"
-	"github.com/jkaveri/goflexstore/store"
+	"github.com/infevocorp/goflexstore/converter"
+	gormopscope "github.com/infevocorp/goflexstore/gorm/opscope"
+	gormquery "github.com/infevocorp/goflexstore/gorm/query"
+	gormutils "github.com/infevocorp/goflexstore/gorm/utils"
+	"github.com/infevocorp/goflexstore/query"
+	"github.com/infevocorp/goflexstore/store"
 )
 
 // New initializes a new Store instance for handling CRUD operations on entities.

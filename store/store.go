@@ -19,7 +19,7 @@ package store
 import (
 	"context"
 
-	"github.com/jkaveri/goflexstore/query"
+	"github.com/infevocorp/goflexstore/query"
 )
 
 // Entity defines a generic interface for an Entity model in the context of data storage.

@@ -1,4 +1,4 @@
-# Flex Stores [![Go Reference](https://pkg.go.dev/badge/github.com/jkaveri/goflexstore.svg)](https://pkg.go.dev/github.com/jkaveri/goflexstore)
+# Flex Stores [![Go Reference](https://pkg.go.dev/badge/github.com/infevocorp/goflexstore.svg)](https://pkg.go.dev/github.com/infevocorp/goflexstore)
 
 - [Getting started](#getting-started)
   - [Installation](#installation)
@@ -38,8 +38,8 @@ userStore.List(
 Get modules
 
 ```bash
-go get github.com/jkaveri/goflexstore@latest
-go get github.com/jkaveri/goflexstore/gorm@latest
+go get github.com/infevocorp/goflexstore@latest
+go get github.com/infevocorp/goflexstore/gorm@latest
 ```
 
 ## Usage
@@ -67,7 +67,7 @@ Let's says you are working to implement `User` realted APIs. You can structure t
     //file: store/user.go
 
     import (
-        "github.com/jkaveri/goflexstore/store"
+        "github.com/infevocorp/goflexstore/store"
 
         "yourmodule/model"
     )
@@ -184,7 +184,7 @@ Recognizing these issues, Flex Store offers a more streamlined approach as demon
     //filters/filters.go
 
     import (
-        "github.com/jkaveri/goflexstore/query"
+        "github.com/infevocorp/goflexstore/query"
     )
 
     // Tag creates a query.FilterParam for tag filtering.

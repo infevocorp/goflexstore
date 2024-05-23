@@ -3,7 +3,7 @@
 package mockconverter
 
 import (
-	store "github.com/jkaveri/goflexstore/store"
+	store "github.com/infevocorp/goflexstore/store"
 	mock "github.com/stretchr/testify/mock"
 )
 

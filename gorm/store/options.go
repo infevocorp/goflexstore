@@ -1,9 +1,9 @@
 package gormstore
 
 import (
-	"github.com/jkaveri/goflexstore/converter"
-	gormquery "github.com/jkaveri/goflexstore/gorm/query"
-	"github.com/jkaveri/goflexstore/store"
+	"github.com/infevocorp/goflexstore/converter"
+	gormquery "github.com/infevocorp/goflexstore/gorm/query"
+	"github.com/infevocorp/goflexstore/store"
 )
 
 // Option is a function that modifies the store.

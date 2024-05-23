@@ -9,10 +9,10 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/jkaveri/goflexstore/filters"
-	gormopscope "github.com/jkaveri/goflexstore/gorm/opscope"
-	gormstore "github.com/jkaveri/goflexstore/gorm/store"
-	"github.com/jkaveri/goflexstore/query"
+	"github.com/infevocorp/goflexstore/filters"
+	gormopscope "github.com/infevocorp/goflexstore/gorm/opscope"
+	gormstore "github.com/infevocorp/goflexstore/gorm/store"
+	"github.com/infevocorp/goflexstore/query"
 )
 
 func Test_Store_Get(t *testing.T) {

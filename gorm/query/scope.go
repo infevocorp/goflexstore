@@ -3,7 +3,7 @@ package gormquery
 import (
 	"gorm.io/gorm"
 
-	"github.com/jkaveri/goflexstore/query"
+	"github.com/infevocorp/goflexstore/query"
 )
 
 // ScopeFunc defines the type for GORM's scope function. It is a function that takes a GORM DB

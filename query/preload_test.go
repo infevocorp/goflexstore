@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/jkaveri/goflexstore/query"
+	"github.com/infevocorp/goflexstore/query"
 )
 
 func Test_Preload_Test(t *testing.T) {

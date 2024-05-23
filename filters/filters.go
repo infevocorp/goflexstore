@@ -1,6 +1,6 @@
 package filters
 
-import "github.com/jkaveri/goflexstore/query"
+import "github.com/infevocorp/goflexstore/query"
 
 func IDs[T comparable](ids ...T) query.FilterParam {
 	return query.Filter("ID", ids)

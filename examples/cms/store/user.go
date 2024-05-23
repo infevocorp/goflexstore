@@ -1,8 +1,8 @@
 package store
 
 import (
-	"github.com/jkaveri/goflexstore/examples/cms/model"
-	"github.com/jkaveri/goflexstore/store"
+	"github.com/infevocorp/goflexstore/examples/cms/model"
+	"github.com/infevocorp/goflexstore/store"
 )
 
 // UserStore is a store for users

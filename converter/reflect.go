@@ -7,7 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/jkaveri/goflexstore/store"
+	"github.com/infevocorp/goflexstore/store"
 )
 
 // NewReflect creates a new reflection-based converter.

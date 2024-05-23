@@ -10,9 +10,9 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
-	gormquery "github.com/jkaveri/goflexstore/gorm/query"
-	gormutils "github.com/jkaveri/goflexstore/gorm/utils"
-	"github.com/jkaveri/goflexstore/query"
+	gormquery "github.com/infevocorp/goflexstore/gorm/query"
+	gormutils "github.com/infevocorp/goflexstore/gorm/utils"
+	"github.com/infevocorp/goflexstore/query"
 )
 
 type User struct {

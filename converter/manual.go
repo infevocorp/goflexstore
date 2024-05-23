@@ -1,6 +1,6 @@
 package converter
 
-import "github.com/jkaveri/goflexstore/store"
+import "github.com/infevocorp/goflexstore/store"
 
 // NewManual creates a new Manual converter instance.
 //

@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/jkaveri/goflexstore/converter"
+	"github.com/infevocorp/goflexstore/converter"
 )
 
 type UnMatchUser struct {

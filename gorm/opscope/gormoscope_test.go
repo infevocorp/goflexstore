@@ -11,7 +11,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
-	gormopscope "github.com/jkaveri/goflexstore/gorm/opscope"
+	gormopscope "github.com/infevocorp/goflexstore/gorm/opscope"
 )
 
 func Test_NewWriteTransactionScope(t *testing.T) {

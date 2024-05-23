@@ -15,13 +15,13 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	gormopscope "github.com/jkaveri/goflexstore/gorm/opscope"
-	flexstore "github.com/jkaveri/goflexstore/store"
+	gormopscope "github.com/infevocorp/goflexstore/gorm/opscope"
+	flexstore "github.com/infevocorp/goflexstore/store"
 
-	"github.com/jkaveri/goflexstore/examples/cms/handlers"
-	"github.com/jkaveri/goflexstore/examples/cms/model"
-	"github.com/jkaveri/goflexstore/examples/cms/store"
-	storesql "github.com/jkaveri/goflexstore/examples/cms/store/sql"
+	"github.com/infevocorp/goflexstore/examples/cms/handlers"
+	"github.com/infevocorp/goflexstore/examples/cms/model"
+	"github.com/infevocorp/goflexstore/examples/cms/store"
+	storesql "github.com/infevocorp/goflexstore/examples/cms/store/sql"
 )
 
 func main() {

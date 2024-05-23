@@ -1,4 +1,4 @@
-// Package gormquery provides an extension for GORM, utilizing github.com/jkaveri/goflexstore/query.
+// Package gormquery provides an extension for GORM, utilizing github.com/infevocorp/goflexstore/query.
 // It facilitates the creation of GORM's scope functions, enhancing flexibility and reusability.
 //
 // The primary goal of gormquery is to seamlessly integrate complex query functionalities with GORM,
@@ -10,7 +10,7 @@
 //   - Enhanced reusability: Encourages code reuse by abstracting common query patterns.
 //   - Flexibility: Easily adapt to various querying requirements without changing the underlying database interactions.
 //
-// gormquery is especially useful in conjunction with the github.com/jkaveri/flexstore/store/gorm package,
+// gormquery is especially useful in conjunction with the github.com/infevocorp/flexstore/store/gorm package,
 // providing the necessary tools to create a generic, reusable store that leverages the power of GORM
 // with enhanced query capabilities.
 package gormquery
