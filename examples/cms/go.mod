@@ -3,8 +3,8 @@ module github.com/infevocorp/goflexstore/examples/cms
 go 1.21.6
 
 require (
-	github.com/infevocorp/goflexstore v1.0.7
-	github.com/infevocorp/goflexstore/gorm v1.0.7
+	github.com/infevocorp/goflexstore v1.0.10
+	github.com/infevocorp/goflexstore/gorm v1.0.10
 	gorm.io/driver/sqlite v1.5.4
 )
 
