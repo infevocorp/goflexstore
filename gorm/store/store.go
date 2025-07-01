@@ -78,7 +78,6 @@ func (s *Store[Entity, DTO, ID]) Get(ctx context.Context, params ...query.Param)
 
 	if err := tx.
 		First(&dto).Error; err != nil {
-
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return *new(Entity), store.ErrorNotFound
 		}

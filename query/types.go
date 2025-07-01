@@ -33,4 +33,8 @@ const (
 	// TypeWithLock represents the type name for the lock-for-update clause parameters in a query.
 	// These parameters specify the lock mode to be used: "FOR UPDATE".
 	TypeWithLock = "withlock"
+
+	// TypeWithHint represents the type name for hint parameters in a query.
+	// These parameters specify query hints to provide to the database optimizer.
+	TypeWithHint = "withhint"
 )

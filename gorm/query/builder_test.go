@@ -343,6 +343,29 @@ func Test_Builder_Build(t *testing.T) {
 						AddRow("john", 20))
 			},
 		},
+		{
+			name: "hint",
+			args: args{
+				params: query.NewParams(
+					query.WithHint("INL_HASH_JOIN(users)"),
+				),
+			},
+			expects: expects{
+				err: false,
+				users: []User{
+					{
+						ID:   1,
+						Name: "john",
+						Age:  20,
+					},
+				},
+			},
+			mock: func(d deps) {
+				d.sql.ExpectQuery(regexp.QuoteMeta("SELECT /*+ INL_HASH_JOIN(users) */ * FROM `users`")).
+					WillReturnRows(sqlmock.NewRows([]string{"id", "name", "age"}).
+						AddRow(1, "john", 20))
+			},
+		},
 	}
 
 	for _, tt := range tests {
