@@ -1,58 +1,79 @@
-linters-settings:
-  revive:
-    confidence: 0.9
-    severity: error
-    rules:
-      - name: line-length-limit
-        arguments:
-          - 120
-      - name: blank-imports
-      - name: context-as-argument
-      - name: context-keys-type
-      - name: dot-imports
-      - name: empty-block
-      - name: error-naming
-      - name: error-return
-      - name: error-strings
-      - name: errorf
-      - name: exported
-      - name: increment-decrement
-      - name: indent-error-flow
-      - name: package-comments
-      - name: range
-      - name: receiver-naming
-      - name: redefines-builtin-id
-      - name: superfluous-else
-      - name: string-format
-        arguments:
-        - ["core.WriteError[1].Message", "/^([^A-Z]|$)/", "must not start with a capital letter"]
-        - ["fmt.Errorf[0]", "/(^|[^\\.!?])$/", "must not end in punctuation"]
-        - ["panic", "/^[^\\n]*$/", "must not contain line breaks"]
-      - name: time-equal
-      - name: time-naming
-      - name: unexported-return
-      - name: unreachable-code
-      - name: unused-parameter
-      - name: var-declaration
-      - name: var-naming
-      - name: use-any
+version: "2"
 linters:
-  enable-all: false
-  disable-all: true
-  fast: false
+  default: none
   enable:
     - revive
     - wsl
-    - gofumpt
-
+  settings:
+    revive:
+      confidence: 0.9
+      severity: error
+      rules:
+        - name: line-length-limit
+          arguments:
+            - 120
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: dot-imports
+        - name: empty-block
+        - name: error-naming
+        - name: error-return
+        - name: error-strings
+        - name: errorf
+        - name: exported
+        - name: increment-decrement
+        - name: indent-error-flow
+        - name: package-comments
+        - name: range
+        - name: receiver-naming
+        - name: redefines-builtin-id
+        - name: superfluous-else
+        - name: string-format
+          arguments:
+            - - core.WriteError[1].Message
+              - /^([^A-Z]|$)/
+              - must not start with a capital letter
+            - - fmt.Errorf[0]
+              - /(^|[^\.!?])$/
+              - must not end in punctuation
+            - - panic
+              - /^[^\n]*$/
+              - must not contain line breaks
+        - name: time-equal
+        - name: time-naming
+        - name: unexported-return
+        - name: unreachable-code
+        - name: unused-parameter
+        - name: var-declaration
+        - name: var-naming
+        - name: use-any
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - lll
+          - revive
+        path: _test\.go
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 issues:
-  exclude-use-default: true
-  exclude-case-sensitive: false
   max-issues-per-linter: 50
   max-same-issues: 3
   fix: true
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - lll
-        - revive
+formatters:
+  enable:
+    - gofumpt
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
