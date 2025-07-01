@@ -12,6 +12,7 @@ import (
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"gorm.io/hints"
 
 	"github.com/infevocorp/goflexstore/query"
 )
@@ -36,6 +37,7 @@ func NewBuilder(options ...Option) *ScopeBuilder {
 		query.TypeOrderBy:  s.OrderBy,
 		query.TypePreload:  s.Preload,
 		query.TypeWithLock: s.ClauseLockUpdate,
+		query.TypeWithHint: s.Hint,
 	}
 
 	for _, option := range options {
@@ -222,6 +224,15 @@ func (b *ScopeBuilder) ClauseLockUpdate(param query.Param) ScopeFunc {
 
 			return tx
 		}
+	}
+}
+
+// Hint adds an optimzier hint
+func (b *ScopeBuilder) Hint(param query.Param) ScopeFunc {
+	p := param.(query.WithHintParam)
+
+	return func(tx *gorm.DB) *gorm.DB {
+		return tx.Clauses(hints.New(p.Hint))
 	}
 }
 
