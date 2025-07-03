@@ -10,7 +10,7 @@ retract [v1.0.1, v1.0.6]
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
-	github.com/infevocorp/goflexstore v1.0.10
+	github.com/infevocorp/goflexstore v1.0.11
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.4
 	gorm.io/driver/mysql v1.5.2
