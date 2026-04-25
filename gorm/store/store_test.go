@@ -47,9 +47,9 @@ func Test_Store_Get(t *testing.T) {
 			mock: func(d deps) {
 				d.sqlMock.
 					ExpectQuery(regexp.QuoteMeta(
-						"SELECT * FROM `user_dtos` WHERE id = ? ORDER BY `user_dtos`.`id` LIMIT 1",
+						"SELECT * FROM `user_dtos` WHERE id = ? ORDER BY `user_dtos`.`id` LIMIT ?",
 					)).
-					WithArgs(1).
+					WithArgs(1, 1).
 					WillReturnRows(sqlmock.NewRows([]string{"id", "name", "age"}).
 						AddRow(1, "user_name", 42))
 			},
