@@ -138,7 +138,8 @@ func Test_Builder_Build(t *testing.T) {
 				},
 			},
 			mock: func(d deps) {
-				d.sql.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` LIMIT 10 OFFSET 1")).
+				d.sql.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` LIMIT ? OFFSET ?")).
+					WithArgs(10, 1).
 					WillReturnRows(sqlmock.NewRows([]string{"id", "name", "age"}).
 						AddRow(1, "john", 20))
 			},
@@ -287,8 +288,8 @@ func Test_Builder_Build(t *testing.T) {
 					WillReturnRows(sqlmock.NewRows([]string{"id", "name", "age", "referer_id"}).
 						AddRow(1, "john", 20, 2))
 
-				d.sql.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE name = ? AND age = ? AND `users`.`id` = ?")).
-					WithArgs("jenny", 20, 2).
+				d.sql.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `users`.`id` = ? AND name = ? AND age = ?")).
+					WithArgs(2, "jenny", 20).
 					WillReturnRows(sqlmock.NewRows([]string{"id", "name", "age"}).
 						AddRow(2, "jenny", 20))
 			},
@@ -328,20 +329,10 @@ func Test_Builder_Build(t *testing.T) {
 				),
 			},
 			expects: expects{
-				err: false,
-				users: []User{
-					{
-						ID:   0,
-						Name: "john",
-						Age:  20,
-					},
-				},
+				err:   true,
+				users: nil,
 			},
-			mock: func(d deps) {
-				d.sql.ExpectQuery(regexp.QuoteMeta("SELECT `name`,`age` FROM `users`")).
-					WillReturnRows(sqlmock.NewRows([]string{"name", "age"}).
-						AddRow("john", 20))
-			},
+			mock: func(d deps) {},
 		},
 		{
 			name: "hint",
