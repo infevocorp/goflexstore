@@ -7,11 +7,20 @@ import (
 	"github.com/jinzhu/inflection"
 )
 
-// TableName derives the default table name from a Row struct: strips any
-// trailing "Row" suffix, converts to snake_case, then pluralises.
-func TableName(row any) string {
-	name := structType(row).Name()
-	name = strings.TrimSuffix(name, "Row")
+// TableNamer can be implemented by a DTO to override the derived table name.
+type TableNamer interface {
+	TableName() string
+}
+
+// TableName derives the default table name from a DTO struct: strips any
+// trailing "DTO" suffix, converts to snake_case, then pluralises.
+// If the DTO implements TableNamer, that value is used instead.
+func TableName(dto any) string {
+	if tn, ok := dto.(TableNamer); ok {
+		return tn.TableName()
+	}
+	name := structType(dto).Name()
+	name = strings.TrimSuffix(name, "DTO")
 	return inflection.Plural(toSnakeCase(name))
 }
 

@@ -1,6 +1,6 @@
 # goflexstore/sqlx [![Go Reference](https://pkg.go.dev/badge/github.com/infevocorp/goflexstore/sqlx.svg)](https://pkg.go.dev/github.com/infevocorp/goflexstore/sqlx)
 
-`sqlx`-backed implementation of the [goflexstore](https://github.com/infevocorp/goflexstore) repository pattern for Go.
+`sqlx`-backed store implementation for [goflexstore](https://github.com/infevocorp/goflexstore) — a store-layer abstraction for Go.
 
 Supports **MySQL**, **PostgreSQL**, and **SQLite** via [`jmoiron/sqlx`](https://github.com/jmoiron/sqlx).
 
@@ -13,12 +13,12 @@ go get github.com/infevocorp/goflexstore/sqlx@latest
 
 ## Packages
 
-| Package | Import path | Purpose |
-|---|---|---|
-| `sqlxstore` | `goflexstore/sqlx/store` | Generic CRUD store |
-| `sqlxopscope` | `goflexstore/sqlx/opscope` | Transaction management via context |
-| `sqlxquery` | `goflexstore/sqlx/query` | SQL fragment builder from query params |
-| `sqlxutils` | `goflexstore/sqlx/utils` | Reflection helpers (table name, field→column map) |
+| Package       | Import path                | Purpose                                           |
+| ------------- | -------------------------- | ------------------------------------------------- |
+| `sqlxstore`   | `goflexstore/sqlx/store`   | Generic CRUD store                                |
+| `sqlxopscope` | `goflexstore/sqlx/opscope` | Transaction management via context                |
+| `sqlxquery`   | `goflexstore/sqlx/query`   | SQL fragment builder from query params            |
+| `sqlxutils`   | `goflexstore/sqlx/utils`   | Reflection helpers (table name, field→column map from DTO) |
 
 ## Quick Start
 
@@ -33,13 +33,13 @@ type User struct {
 }
 func (u User) GetID() int64 { return u.ID }
 
-// Database row struct — carries db: tags
-type UserRow struct {
+// DTO — carries db: tags for sqlx mapping
+type UserDTO struct {
     ID   int64  `db:"id"`
     Name string `db:"name"`
     Age  int    `db:"age"`
 }
-func (u UserRow) GetID() int64 { return u.ID }
+func (u UserDTO) GetID() int64 { return u.ID }
 ```
 
 ### 2. Create the store
@@ -56,10 +56,10 @@ db, _ := sqlx.Open("mysql", dsn)
 
 opScope := sqlxopscope.NewTransactionScope("main", db, nil)
 
-userStore := sqlxstore.New[User, UserRow, int64](
+userStore := sqlxstore.New[User, UserDTO, int64](
     opScope,
-    sqlxstore.WithTable[User, UserRow, int64]("users"),
-    sqlxstore.WithDialect[User, UserRow, int64](sqlxquery.DialectMySQL),
+    sqlxstore.WithTable[User, UserDTO, int64]("users"),
+    sqlxstore.WithDialect[User, UserDTO, int64](sqlxquery.DialectMySQL),
 )
 ```
 
@@ -104,24 +104,24 @@ defer opScope.EndWithRecover(ctx, &err) // commits on success, rolls back on err
 ## Configuration Options
 
 ```go
-sqlxstore.New[Entity, Row, ID](
+sqlxstore.New[Entity, DTO, ID](
     opScope,
-    sqlxstore.WithTable[E, R, ID]("table_name"),           // override auto-derived table name
-    sqlxstore.WithDialect[E, R, ID](sqlxquery.DialectPostgres),
-    sqlxstore.WithPKColumn[E, R, ID]("uuid"),              // default: "id"
-    sqlxstore.WithReturningID[E, R, ID](true),             // enable RETURNING for Postgres
-    sqlxstore.WithBatchSize[E, R, ID](100),                // default: 50
-    sqlxstore.WithConverter[E, R, ID](myConverter),        // custom Entity <-> Row converter
+    sqlxstore.WithTable[E, D, ID]("table_name"),           // override auto-derived table name
+    sqlxstore.WithDialect[E, D, ID](sqlxquery.DialectPostgres),
+    sqlxstore.WithPKColumn[E, D, ID]("uuid"),              // default: "id"
+    sqlxstore.WithReturningID[E, D, ID](true),             // enable RETURNING for Postgres
+    sqlxstore.WithBatchSize[E, D, ID](100),                // default: 50
+    sqlxstore.WithConverter[E, D, ID](myConverter),        // custom Entity <-> DTO converter
 )
 ```
 
 ## Dialect Support
 
-| Dialect constant | Database | Placeholder style |
-|---|---|---|
-| `sqlxquery.DialectMySQL` | MySQL (default) | `?` |
-| `sqlxquery.DialectPostgres` | PostgreSQL | `$1`, `$2`, … |
-| `sqlxquery.DialectSQLite` | SQLite | `?` |
+| Dialect constant            | Database        | Placeholder style |
+| --------------------------- | --------------- | ----------------- |
+| `sqlxquery.DialectMySQL`    | MySQL (default) | `?`               |
+| `sqlxquery.DialectPostgres` | PostgreSQL      | `$1`, `$2`, …     |
+| `sqlxquery.DialectSQLite`   | SQLite          | `?`               |
 
 For PostgreSQL, also set `WithReturningID(true)` to retrieve the inserted PK via `RETURNING`.
 
@@ -146,9 +146,9 @@ query.WithHint("index_merge")                       // /*+ index_merge */
 
 ## Table Name Inference
 
-By default the table name is derived from the Row struct type:
+By default the table name is derived from the DTO struct type:
 
-- Strip trailing `Row` suffix → `UserRow` → `User`
+- Strip trailing `DTO` suffix → `UserDTO` → `User`
 - Convert to `snake_case` → `user`
 - Pluralise → `users`
 

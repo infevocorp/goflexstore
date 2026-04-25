@@ -23,11 +23,10 @@ var ErrPreloadNotSupported = stderrs.New("preload is not supported in sqlx store
 
 // Store implements store.Store[Entity, ID] using raw SQL via jmoiron/sqlx.
 //
-// Entity is the clean domain model; Row is the sqlx-tagged database struct
-// (analogous to the DTO in gorm/store). ID is the primary-key type.
-type Store[Entity store.Entity[ID], Row store.Entity[ID], ID comparable] struct {
+// Entity is the clean domain model; DTO is the sqlx-tagged database struct. ID is the primary-key type.
+type Store[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable] struct {
 	OpScope      *sqlxopscope.TransactionScope
-	Converter    converter.Converter[Entity, Row, ID]
+	Converter    converter.Converter[Entity, DTO, ID]
 	QueryBuilder *sqlxquery.Builder
 	Table        string
 	BatchSize    int
@@ -38,11 +37,11 @@ type Store[Entity store.Entity[ID], Row store.Entity[ID], ID comparable] struct 
 
 // New constructs a Store, applying options and supplying defaults for any
 // unset fields.
-func New[Entity store.Entity[ID], Row store.Entity[ID], ID comparable](
+func New[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable](
 	opScope *sqlxopscope.TransactionScope,
-	options ...Option[Entity, Row, ID],
-) *Store[Entity, Row, ID] {
-	s := &Store[Entity, Row, ID]{
+	options ...Option[Entity, DTO, ID],
+) *Store[Entity, DTO, ID] {
+	s := &Store[Entity, DTO, ID]{
 		OpScope:   opScope,
 		BatchSize: 50,
 		PKColumn:  "id",
@@ -54,17 +53,17 @@ func New[Entity store.Entity[ID], Row store.Entity[ID], ID comparable](
 	}
 
 	if s.Converter == nil {
-		s.Converter = converter.NewReflect[Entity, Row, ID](nil)
+		s.Converter = converter.NewReflect[Entity, DTO, ID](nil)
 	}
 
 	if s.QueryBuilder == nil {
 		s.QueryBuilder = sqlxquery.NewBuilder(
-			sqlxquery.WithFieldToColMap(sqlxutils.FieldToColMap(*new(Row))),
+			sqlxquery.WithFieldToColMap(sqlxutils.FieldToColMap(*new(DTO))),
 		)
 	}
 
 	if s.Table == "" {
-		s.Table = sqlxutils.TableName(*new(Row))
+		s.Table = sqlxutils.TableName(*new(DTO))
 	}
 
 	return s
@@ -74,7 +73,7 @@ func New[Entity store.Entity[ID], Row store.Entity[ID], ID comparable](
 
 // Get returns the first row matching params, mapping it to Entity.
 // Returns store.ErrorNotFound when no row matches.
-func (s *Store[Entity, Row, ID]) Get(ctx context.Context, params ...query.Param) (Entity, error) {
+func (s *Store[Entity, DTO, ID]) Get(ctx context.Context, params ...query.Param) (Entity, error) {
 	if err := checkPreload(params); err != nil {
 		return *new(Entity), err
 	}
@@ -90,19 +89,19 @@ func (s *Store[Entity, Row, ID]) Get(ctx context.Context, params ...query.Param)
 	db := s.OpScope.Tx(ctx)
 	sqlStr = db.Rebind(sqlStr)
 
-	var row Row
-	if err := sqlx.GetContext(ctx, db, &row, sqlStr, args...); err != nil {
+	var dto DTO
+	if err := sqlx.GetContext(ctx, db, &dto, sqlStr, args...); err != nil {
 		if stderrs.Is(err, sql.ErrNoRows) {
 			return *new(Entity), store.ErrorNotFound
 		}
 		return *new(Entity), err
 	}
 
-	return s.Converter.ToEntity(row), nil
+	return s.Converter.ToEntity(dto), nil
 }
 
 // List returns all rows matching params.
-func (s *Store[Entity, Row, ID]) List(ctx context.Context, params ...query.Param) ([]Entity, error) {
+func (s *Store[Entity, DTO, ID]) List(ctx context.Context, params ...query.Param) ([]Entity, error) {
 	if err := checkPreload(params); err != nil {
 		return nil, err
 	}
@@ -118,16 +117,16 @@ func (s *Store[Entity, Row, ID]) List(ctx context.Context, params ...query.Param
 	db := s.OpScope.Tx(ctx)
 	sqlStr = db.Rebind(sqlStr)
 
-	var rows []Row
-	if err := sqlx.SelectContext(ctx, db, &rows, sqlStr, args...); err != nil {
+	var dtos []DTO
+	if err := sqlx.SelectContext(ctx, db, &dtos, sqlStr, args...); err != nil {
 		return nil, err
 	}
 
-	return converter.ToMany(rows, s.Converter.ToEntity), nil
+	return converter.ToMany(dtos, s.Converter.ToEntity), nil
 }
 
 // Count returns the number of rows matching params.
-func (s *Store[Entity, Row, ID]) Count(ctx context.Context, params ...query.Param) (int64, error) {
+func (s *Store[Entity, DTO, ID]) Count(ctx context.Context, params ...query.Param) (int64, error) {
 	result := s.QueryBuilder.Build(query.NewParams(params...))
 
 	sqlStr := "SELECT COUNT(*) FROM " + s.Table
@@ -152,7 +151,7 @@ func (s *Store[Entity, Row, ID]) Count(ctx context.Context, params ...query.Para
 }
 
 // Exists returns true when at least one row matches params.
-func (s *Store[Entity, Row, ID]) Exists(ctx context.Context, params ...query.Param) (bool, error) {
+func (s *Store[Entity, DTO, ID]) Exists(ctx context.Context, params ...query.Param) (bool, error) {
 	result := s.QueryBuilder.Build(query.NewParams(params...))
 
 	inner := "SELECT 1 FROM " + s.Table
@@ -183,16 +182,16 @@ func (s *Store[Entity, Row, ID]) Exists(ctx context.Context, params ...query.Par
 // When the PK field is zero it is omitted from the INSERT and the database
 // auto-increment value is retrieved via LastInsertId (MySQL / SQLite) or a
 // RETURNING clause (Postgres, requires WithReturningID(true)).
-func (s *Store[Entity, Row, ID]) Create(ctx context.Context, entity Entity) (ID, error) {
-	row := s.Converter.ToDTO(entity)
-	isZeroID := row.GetID() == *new(ID)
+func (s *Store[Entity, DTO, ID]) Create(ctx context.Context, entity Entity) (ID, error) {
+	dto := s.Converter.ToDTO(entity)
+	isZeroID := dto.GetID() == *new(ID)
 
 	excludeCols := map[string]bool{}
 	if isZeroID {
 		excludeCols[s.PKColumn] = true
 	}
 
-	cols, vals := getStructColVals(row, excludeCols, false)
+	cols, vals := getStructColVals(dto, excludeCols, false)
 	if len(cols) == 0 {
 		return *new(ID), stderrs.New("no columns to insert")
 	}
@@ -223,28 +222,28 @@ func (s *Store[Entity, Row, ID]) Create(ctx context.Context, entity Entity) (ID,
 
 	if isZeroID {
 		if lastID, err2 := res.LastInsertId(); err2 == nil && lastID != 0 {
-			setPKField(&row, s.PKColumn, lastID)
+			setPKField(&dto, s.PKColumn, lastID)
 		}
 	}
 
-	return row.GetID(), nil
+	return dto.GetID(), nil
 }
 
 // CreateMany batch-inserts entities in groups of BatchSize.
-func (s *Store[Entity, Row, ID]) CreateMany(ctx context.Context, entities []Entity) error {
+func (s *Store[Entity, DTO, ID]) CreateMany(ctx context.Context, entities []Entity) error {
 	if len(entities) == 0 {
 		return nil
 	}
 
-	rows := converter.ToMany(entities, s.Converter.ToDTO)
+	dtos := converter.ToMany(entities, s.Converter.ToDTO)
 
-	isZeroID := rows[0].GetID() == *new(ID)
+	isZeroID := dtos[0].GetID() == *new(ID)
 	excludeCols := map[string]bool{}
 	if isZeroID {
 		excludeCols[s.PKColumn] = true
 	}
 
-	firstCols, _ := getStructColVals(rows[0], excludeCols, false)
+	firstCols, _ := getStructColVals(dtos[0], excludeCols, false)
 	if len(firstCols) == 0 {
 		return stderrs.New("no columns to insert")
 	}
@@ -252,19 +251,19 @@ func (s *Store[Entity, Row, ID]) CreateMany(ctx context.Context, entities []Enti
 	batchSize := defaultValue(s.BatchSize, 50)
 	db := s.OpScope.Tx(ctx)
 
-	for i := 0; i < len(rows); i += batchSize {
+	for i := 0; i < len(dtos); i += batchSize {
 		end := i + batchSize
-		if end > len(rows) {
-			end = len(rows)
+		if end > len(dtos) {
+			end = len(dtos)
 		}
-		batch := rows[i:end]
+		batch := dtos[i:end]
 
 		rowPHs := make([]string, len(batch))
 		var allVals []any
 
-		for j, row := range batch {
-			rowCopy := row
-			_, rowVals := getStructColVals(rowCopy, excludeCols, false)
+		for j, dto := range batch {
+			dtoCopy := dto
+			_, rowVals := getStructColVals(dtoCopy, excludeCols, false)
 			rowPHs[j] = "(" + strings.Join(buildPlaceholders(len(firstCols)), ", ") + ")"
 			allVals = append(allVals, rowVals...)
 		}
@@ -286,15 +285,15 @@ func (s *Store[Entity, Row, ID]) CreateMany(ctx context.Context, entities []Enti
 
 // Update sets all columns (including zero values) for rows matched by params.
 // Falls back to WHERE pk = entity.GetID() when params is empty.
-func (s *Store[Entity, Row, ID]) Update(ctx context.Context, entity Entity, params ...query.Param) error {
-	row := s.Converter.ToDTO(entity)
-	id := row.GetID()
+func (s *Store[Entity, DTO, ID]) Update(ctx context.Context, entity Entity, params ...query.Param) error {
+	dto := s.Converter.ToDTO(entity)
+	id := dto.GetID()
 
 	if id == *new(ID) && len(params) == 0 {
 		return stderrs.New("id or query params required for Update")
 	}
 
-	setCols, setVals := getStructColVals(row, map[string]bool{s.PKColumn: true}, false)
+	setCols, setVals := getStructColVals(dto, map[string]bool{s.PKColumn: true}, false)
 	if len(setCols) == 0 {
 		return stderrs.New("no columns to update")
 	}
@@ -327,11 +326,11 @@ func (s *Store[Entity, Row, ID]) Update(ctx context.Context, entity Entity, para
 
 // PartialUpdate sets only non-zero fields for rows matched by params.
 // Falls back to WHERE pk = entity.GetID() when params is empty.
-func (s *Store[Entity, Row, ID]) PartialUpdate(ctx context.Context, entity Entity, params ...query.Param) error {
-	row := s.Converter.ToDTO(entity)
-	id := row.GetID()
+func (s *Store[Entity, DTO, ID]) PartialUpdate(ctx context.Context, entity Entity, params ...query.Param) error {
+	dto := s.Converter.ToDTO(entity)
+	id := dto.GetID()
 
-	setCols, setVals := getStructColVals(row, map[string]bool{s.PKColumn: true}, true)
+	setCols, setVals := getStructColVals(dto, map[string]bool{s.PKColumn: true}, true)
 	if len(setCols) == 0 {
 		return stderrs.New("no non-zero columns to update")
 	}
@@ -367,7 +366,7 @@ func (s *Store[Entity, Row, ID]) PartialUpdate(ctx context.Context, entity Entit
 }
 
 // Delete removes rows matched by params.
-func (s *Store[Entity, Row, ID]) Delete(ctx context.Context, params ...query.Param) error {
+func (s *Store[Entity, DTO, ID]) Delete(ctx context.Context, params ...query.Param) error {
 	result := s.QueryBuilder.Build(query.NewParams(params...))
 
 	sqlStr := "DELETE FROM " + s.Table
@@ -389,16 +388,16 @@ func (s *Store[Entity, Row, ID]) Delete(ctx context.Context, params ...query.Par
 
 // Upsert inserts or updates entity according to the OnConflict strategy.
 // The dialect-specific SQL is selected based on Store.Dialect.
-func (s *Store[Entity, Row, ID]) Upsert(ctx context.Context, entity Entity, onConflict store.OnConflict) (ID, error) {
-	row := s.Converter.ToDTO(entity)
-	isZeroID := row.GetID() == *new(ID)
+func (s *Store[Entity, DTO, ID]) Upsert(ctx context.Context, entity Entity, onConflict store.OnConflict) (ID, error) {
+	dto := s.Converter.ToDTO(entity)
+	isZeroID := dto.GetID() == *new(ID)
 
 	excludeCols := map[string]bool{}
 	if isZeroID {
 		excludeCols[s.PKColumn] = true
 	}
 
-	cols, insertVals := getStructColVals(row, excludeCols, false)
+	cols, insertVals := getStructColVals(dto, excludeCols, false)
 	if len(cols) == 0 {
 		return *new(ID), stderrs.New("no columns to upsert")
 	}
@@ -437,16 +436,16 @@ func (s *Store[Entity, Row, ID]) Upsert(ctx context.Context, entity Entity, onCo
 
 	if isZeroID {
 		if lastID, err2 := res.LastInsertId(); err2 == nil && lastID != 0 {
-			setPKField(&row, s.PKColumn, lastID)
+			setPKField(&dto, s.PKColumn, lastID)
 		}
 	}
 
-	return row.GetID(), nil
+	return dto.GetID(), nil
 }
 
 // ---- helpers ----------------------------------------------------------------
 
-func (s *Store[Entity, Row, ID]) buildSelectSQL(result sqlxquery.Result, forceLimit int) string {
+func (s *Store[Entity, DTO, ID]) buildSelectSQL(result sqlxquery.Result, forceLimit int) string {
 	cols := "*"
 	if len(result.Cols) > 0 {
 		cols = strings.Join(result.Cols, ", ")
@@ -494,7 +493,7 @@ func (s *Store[Entity, Row, ID]) buildSelectSQL(result sqlxquery.Result, forceLi
 
 // buildWhere returns the WHERE clause and args for Update / PartialUpdate.
 // When params are provided they take precedence; otherwise WHERE pk = id.
-func (s *Store[Entity, Row, ID]) buildWhere(id ID, params []query.Param) (whereStr string, whereArgs []any) {
+func (s *Store[Entity, DTO, ID]) buildWhere(id ID, params []query.Param) (whereStr string, whereArgs []any) {
 	if len(params) > 0 {
 		r := s.QueryBuilder.Build(query.NewParams(params...))
 		return r.Where, r.Args

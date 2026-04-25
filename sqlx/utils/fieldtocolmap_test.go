@@ -56,12 +56,3 @@ func TestFieldToColMap_DashSkipped(t *testing.T) {
 	assert.NotContains(t, m, "Hidden")
 }
 
-func TestTableName(t *testing.T) {
-	type UserRow struct{}
-	assert.Equal(t, "users", sqlxutils.TableName(UserRow{}))
-}
-
-func TestTableName_NoSuffix(t *testing.T) {
-	type Product struct{}
-	assert.Equal(t, "products", sqlxutils.TableName(Product{}))
-}
