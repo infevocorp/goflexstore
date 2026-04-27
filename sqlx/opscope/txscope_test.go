@@ -5,7 +5,7 @@ import (
 	stderrs "errors"
 	"testing"
 
-	_ "github.com/glebarez/go-sqlite"
+	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -13,30 +13,33 @@ import (
 	sqlxopscope "github.com/infevocorp/goflexstore/sqlx/opscope"
 )
 
-func newDB(t *testing.T) *sqlx.DB {
+func newMockDB(t *testing.T) (*sqlx.DB, sqlmock.Sqlmock) {
 	t.Helper()
-	db, err := sqlx.Open("sqlite", ":memory:")
+	sqlDB, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	require.NoError(t, err)
-	_, err = db.Exec(`CREATE TABLE items (id INTEGER PRIMARY KEY AUTOINCREMENT, val TEXT)`)
-	require.NoError(t, err)
-	return db
+	t.Cleanup(func() { sqlDB.Close() })
+	return sqlx.NewDb(sqlDB, "mysql"), mock
 }
 
 func TestTx_NoTransaction_ReturnsDB(t *testing.T) {
-	db := newDB(t)
-	defer db.Close()
-
+	db, _ := newMockDB(t)
 	scope := sqlxopscope.NewTransactionScope("test", db, nil)
 	ext := scope.Tx(context.Background())
 	assert.NotNil(t, ext)
 }
 
 func TestBegin_End_Commit(t *testing.T) {
-	db := newDB(t)
-	defer db.Close()
-
+	db, mock := newMockDB(t)
 	scope := sqlxopscope.NewTransactionScope("test", db, nil)
 	ctx := context.Background()
+
+	mock.ExpectBegin()
+	mock.ExpectExec("INSERT INTO items (val) VALUES (?)").
+		WithArgs("hello").
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+	mock.ExpectQuery("SELECT COUNT(*) FROM items").
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
 	ctx, err := scope.Begin(ctx)
 	require.NoError(t, err)
@@ -49,14 +52,21 @@ func TestBegin_End_Commit(t *testing.T) {
 	var count int
 	require.NoError(t, db.Get(&count, "SELECT COUNT(*) FROM items"))
 	assert.Equal(t, 1, count)
+	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestBegin_End_Rollback(t *testing.T) {
-	db := newDB(t)
-	defer db.Close()
-
+	db, mock := newMockDB(t)
 	scope := sqlxopscope.NewTransactionScope("test", db, nil)
 	ctx := context.Background()
+
+	mock.ExpectBegin()
+	mock.ExpectExec("INSERT INTO items (val) VALUES (?)").
+		WithArgs("hello").
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectRollback()
+	mock.ExpectQuery("SELECT COUNT(*) FROM items").
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 
 	ctx, err := scope.Begin(ctx)
 	require.NoError(t, err)
@@ -71,14 +81,21 @@ func TestBegin_End_Rollback(t *testing.T) {
 	var count int
 	require.NoError(t, db.Get(&count, "SELECT COUNT(*) FROM items"))
 	assert.Equal(t, 0, count)
+	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestBegin_Nested_IncrLevel(t *testing.T) {
-	db := newDB(t)
-	defer db.Close()
-
+	db, mock := newMockDB(t)
 	scope := sqlxopscope.NewTransactionScope("test", db, nil)
 	ctx := context.Background()
+
+	mock.ExpectBegin()
+	mock.ExpectExec("INSERT INTO items (val) VALUES (?)").
+		WithArgs("x").
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+	mock.ExpectQuery("SELECT COUNT(*) FROM items").
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
 	ctx, err := scope.Begin(ctx)
 	require.NoError(t, err)
@@ -99,14 +116,21 @@ func TestBegin_Nested_IncrLevel(t *testing.T) {
 	var count int
 	require.NoError(t, db.Get(&count, "SELECT COUNT(*) FROM items"))
 	assert.Equal(t, 1, count)
+	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestEndWithRecover_PanicsAreRecovered(t *testing.T) {
-	db := newDB(t)
-	defer db.Close()
-
+	db, mock := newMockDB(t)
 	scope := sqlxopscope.NewTransactionScope("test", db, nil)
 	ctx := context.Background()
+
+	mock.ExpectBegin()
+	mock.ExpectExec("INSERT INTO items (val) VALUES (?)").
+		WithArgs("y").
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectRollback()
+	mock.ExpectQuery("SELECT COUNT(*) FROM items").
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 
 	var err error
 	func() {
@@ -123,4 +147,5 @@ func TestEndWithRecover_PanicsAreRecovered(t *testing.T) {
 	var count int
 	require.NoError(t, db.Get(&count, "SELECT COUNT(*) FROM items"))
 	assert.Equal(t, 0, count)
+	assert.NoError(t, mock.ExpectationsWereMet())
 }

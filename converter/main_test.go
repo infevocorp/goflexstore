@@ -2,14 +2,7 @@ package converter_test
 
 import (
 	"database/sql"
-	"testing"
 	"time"
-
-	"github.com/DATA-DOG/go-sqlmock"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
-
-	"github.com/stretchr/testify/require"
 )
 
 type UserDTO struct {
@@ -44,23 +37,4 @@ type User struct {
 
 func (e User) GetID() int {
 	return e.ID
-}
-
-func newTestDB(t *testing.T) (*gorm.DB, sqlmock.Sqlmock) {
-	db, sqlMock, err := sqlmock.New()
-	require.NoError(t, err)
-
-	sqlMock.ExpectQuery("SELECT VERSION()").WillReturnRows(sqlmock.NewRows([]string{"version"}).AddRow("8.0.23"))
-
-	gormDB, err := gorm.Open(mysql.New(mysql.Config{
-		Conn: db,
-	}), &gorm.Config{
-		DisableAutomaticPing: true,
-	})
-
-	t.Cleanup(func() {
-		require.NoError(t, sqlMock.ExpectationsWereMet())
-	})
-
-	return gormDB, sqlMock
 }

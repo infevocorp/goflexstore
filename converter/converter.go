@@ -41,7 +41,11 @@ type Converter[Entity store.Entity[ID], DTO store.Entity[ID], ID comparable] int
 // need to be transformed into another type, such as converting a slice of database entities
 // into a slice of DTOs for API responses.
 func ToMany[A any, B any](items []A, convFn func(A) B) []B {
-	var result []B
+	if len(items) == 0 {
+		return nil
+	}
+
+	result := make([]B, 0, len(items))
 	for _, item := range items {
 		result = append(result, convFn(item))
 	}

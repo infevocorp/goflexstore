@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	stderrs "errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -90,7 +91,8 @@ func (s *Store[Entity, DTO, ID]) Get(ctx context.Context, params ...query.Param)
 	sqlStr = db.Rebind(sqlStr)
 
 	var dto DTO
-	if err := sqlx.GetContext(ctx, db, &dto, sqlStr, args...); err != nil {
+	scanDest := initScanTarget(&dto)
+	if err := sqlx.GetContext(ctx, db, scanDest, sqlStr, args...); err != nil {
 		if stderrs.Is(err, sql.ErrNoRows) {
 			return *new(Entity), store.ErrorNotFound
 		}
@@ -186,12 +188,12 @@ func (s *Store[Entity, DTO, ID]) Create(ctx context.Context, entity Entity) (ID,
 	dto := s.Converter.ToDTO(entity)
 	isZeroID := dto.GetID() == *new(ID)
 
-	excludeCols := map[string]bool{}
+	skipPK := ""
 	if isZeroID {
-		excludeCols[s.PKColumn] = true
+		skipPK = s.PKColumn
 	}
 
-	cols, vals := getStructColVals(dto, excludeCols, false)
+	cols, vals := getStructColVals(dto, skipPK, false)
 	if len(cols) == 0 {
 		return *new(ID), stderrs.New("no columns to insert")
 	}
@@ -238,15 +240,18 @@ func (s *Store[Entity, DTO, ID]) CreateMany(ctx context.Context, entities []Enti
 	dtos := converter.ToMany(entities, s.Converter.ToDTO)
 
 	isZeroID := dtos[0].GetID() == *new(ID)
-	excludeCols := map[string]bool{}
+	skipPK := ""
 	if isZeroID {
-		excludeCols[s.PKColumn] = true
+		skipPK = s.PKColumn
 	}
 
-	firstCols, _ := getStructColVals(dtos[0], excludeCols, false)
+	firstCols, _ := getStructColVals(dtos[0], skipPK, false)
 	if len(firstCols) == 0 {
 		return stderrs.New("no columns to insert")
 	}
+
+	// Pre-build the per-row placeholder string once; all rows have the same columns.
+	singleRowPH := "(" + strings.Join(buildPlaceholders(len(firstCols)), ", ") + ")"
 
 	batchSize := defaultValue(s.BatchSize, 50)
 	db := s.OpScope.Tx(ctx)
@@ -259,12 +264,12 @@ func (s *Store[Entity, DTO, ID]) CreateMany(ctx context.Context, entities []Enti
 		batch := dtos[i:end]
 
 		rowPHs := make([]string, len(batch))
-		var allVals []any
+		allVals := make([]any, 0, len(batch)*len(firstCols))
 
 		for j, dto := range batch {
 			dtoCopy := dto
-			_, rowVals := getStructColVals(dtoCopy, excludeCols, false)
-			rowPHs[j] = "(" + strings.Join(buildPlaceholders(len(firstCols)), ", ") + ")"
+			_, rowVals := getStructColVals(dtoCopy, skipPK, false)
+			rowPHs[j] = singleRowPH
 			allVals = append(allVals, rowVals...)
 		}
 
@@ -293,7 +298,7 @@ func (s *Store[Entity, DTO, ID]) Update(ctx context.Context, entity Entity, para
 		return stderrs.New("id or query params required for Update")
 	}
 
-	setCols, setVals := getStructColVals(dto, map[string]bool{s.PKColumn: true}, false)
+	setCols, setVals := getStructColVals(dto, s.PKColumn, false)
 	if len(setCols) == 0 {
 		return stderrs.New("no columns to update")
 	}
@@ -330,7 +335,7 @@ func (s *Store[Entity, DTO, ID]) PartialUpdate(ctx context.Context, entity Entit
 	dto := s.Converter.ToDTO(entity)
 	id := dto.GetID()
 
-	setCols, setVals := getStructColVals(dto, map[string]bool{s.PKColumn: true}, true)
+	setCols, setVals := getStructColVals(dto, s.PKColumn, true)
 	if len(setCols) == 0 {
 		return stderrs.New("no non-zero columns to update")
 	}
@@ -392,12 +397,12 @@ func (s *Store[Entity, DTO, ID]) Upsert(ctx context.Context, entity Entity, onCo
 	dto := s.Converter.ToDTO(entity)
 	isZeroID := dto.GetID() == *new(ID)
 
-	excludeCols := map[string]bool{}
+	skipPK := ""
 	if isZeroID {
-		excludeCols[s.PKColumn] = true
+		skipPK = s.PKColumn
 	}
 
-	cols, insertVals := getStructColVals(dto, excludeCols, false)
+	cols, insertVals := getStructColVals(dto, skipPK, false)
 	if len(cols) == 0 {
 		return *new(ID), stderrs.New("no columns to upsert")
 	}
@@ -456,7 +461,10 @@ func (s *Store[Entity, DTO, ID]) buildSelectSQL(result sqlxquery.Result, forceLi
 		sb.WriteString(result.Hint)
 		sb.WriteRune(' ')
 	}
-	sb.WriteString(fmt.Sprintf("SELECT %s FROM %s", cols, s.Table))
+	sb.WriteString("SELECT ")
+	sb.WriteString(cols)
+	sb.WriteString(" FROM ")
+	sb.WriteString(s.Table)
 
 	if result.Where != "" {
 		sb.WriteString(" WHERE " + result.Where)
@@ -476,10 +484,12 @@ func (s *Store[Entity, DTO, ID]) buildSelectSQL(result sqlxquery.Result, forceLi
 		limit = result.Limit
 	}
 	if limit > 0 {
-		sb.WriteString(fmt.Sprintf(" LIMIT %d", limit))
+		sb.WriteString(" LIMIT ")
+		sb.WriteString(strconv.Itoa(limit))
 		// Only emit OFFSET when not in the forced-single-row Get path.
 		if forceLimit == 0 && result.Offset > 0 {
-			sb.WriteString(fmt.Sprintf(" OFFSET %d", result.Offset))
+			sb.WriteString(" OFFSET ")
+			sb.WriteString(strconv.Itoa(result.Offset))
 		}
 	}
 

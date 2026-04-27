@@ -10,6 +10,13 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/examples/cms/cmd/server"
+        },
+        {
+            "name": "Example: PostgresSQLX",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/examples/sqlx-postgres"
         }
     ]
 }
