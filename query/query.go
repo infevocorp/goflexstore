@@ -50,6 +50,7 @@ func (p Params) GetFilter(name string) (FilterParam, bool) {
 			return fp, true
 		}
 	}
+
 	return FilterParam{}, false
 }
 

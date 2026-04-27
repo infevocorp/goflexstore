@@ -44,6 +44,7 @@ func ToMany[A any, B any](items []A, convFn func(A) B) []B {
 	if len(items) == 0 {
 		return nil
 	}
+
 	result := make([]B, 0, len(items))
 	for _, item := range items {
 		result = append(result, convFn(item))
