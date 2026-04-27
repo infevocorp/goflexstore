@@ -48,27 +48,27 @@ func NewBuilder(opts ...Option) *Builder {
 func (b *Builder) Build(params query.Params) Result {
 	var (
 		r           Result
-		whereParts  []string
 		havingParts []string
-		whereArgs   []any
 		havingArgs  []any
 		groupByCols []string
+		orderByParts []string
 		groupByOpt  string
 	)
 
-	for _, param := range params.Params() {
+	allParams := params.Params()
+	whereParts := make([]string, 0, len(allParams))
+	whereArgs  := make([]any,   0, len(allParams))
+
+	for _, param := range allParams {
 		switch p := param.(type) {
 		case query.FilterParam:
-			where, args := buildWhere(b.getColName(p.Name), p.Operator, p.Value)
+			where := buildWhere(b.getColName(p.Name), p.Operator, p.Value, &whereArgs)
 			whereParts = append(whereParts, where)
-			whereArgs = append(whereArgs, args...)
 
 		case query.ORParam:
 			parts := make([]string, len(p.Params))
 			for i, f := range p.Params {
-				w, args := buildWhere(b.getColName(f.Name), f.Operator, f.Value)
-				parts[i] = w
-				whereArgs = append(whereArgs, args...)
+				parts[i] = buildWhere(b.getColName(f.Name), f.Operator, f.Value, &whereArgs)
 			}
 			whereParts = append(whereParts, "("+strings.Join(parts, " OR ")+")")
 
@@ -82,10 +82,7 @@ func (b *Builder) Build(params query.Params) Result {
 			if p.Desc {
 				dir = "DESC"
 			}
-			if r.OrderBy != "" {
-				r.OrderBy += ", "
-			}
-			r.OrderBy += col + " " + dir
+			orderByParts = append(orderByParts, col+" "+dir)
 
 		case query.SelectParam:
 			cols := make([]string, len(p.Names))
@@ -100,9 +97,8 @@ func (b *Builder) Build(params query.Params) Result {
 			}
 			groupByOpt = p.Option
 			for _, hf := range p.Having {
-				w, args := buildWhere(b.getColName(hf.Name), hf.Operator, hf.Value)
+				w := buildWhere(b.getColName(hf.Name), hf.Operator, hf.Value, &havingArgs)
 				havingParts = append(havingParts, w)
-				havingArgs = append(havingArgs, args...)
 			}
 
 		case query.WithLockParam:
@@ -123,6 +119,7 @@ func (b *Builder) Build(params query.Params) Result {
 
 	r.Where = strings.Join(whereParts, " AND ")
 	r.Having = strings.Join(havingParts, " AND ")
+	r.OrderBy = strings.Join(orderByParts, ", ")
 	r.Args = append(whereArgs, havingArgs...)
 
 	if len(groupByCols) > 0 {
@@ -142,26 +139,27 @@ func (b *Builder) getColName(name string) string {
 	return name
 }
 
-// buildWhere constructs a single WHERE predicate and returns the SQL string
-// plus the corresponding argument(s).
-func buildWhere(col string, op query.Operator, value any) (string, []any) {
+// buildWhere constructs a single WHERE predicate and appends the argument(s)
+// to args. Returns the SQL fragment.
+func buildWhere(col string, op query.Operator, value any, args *[]any) string {
 	if value == nil {
 		panic("filter value cannot be nil")
 	}
 
 	rv := reflect.ValueOf(value)
-	kind := rv.Type().Kind()
-
-	if kind == reflect.Slice || kind == reflect.Array {
+	if k := rv.Kind(); k == reflect.Slice || k == reflect.Array {
 		n := rv.Len()
 		if n > 1 {
 			// Pass the whole slice as a single arg; sqlx.In() will expand it.
-			return col + " " + inOperatorStr(op) + " (?)", []any{value}
+			*args = append(*args, value)
+			return col + " " + inOperatorStr(op) + " (?)"
 		}
-		return col + " " + operatorStr(op) + " ?", []any{rv.Index(0).Interface()}
+		*args = append(*args, rv.Index(0).Interface())
+		return col + " " + operatorStr(op) + " ?"
 	}
 
-	return col + " " + operatorStr(op) + " ?", []any{value}
+	*args = append(*args, value)
+	return col + " " + operatorStr(op) + " ?"
 }
 
 func operatorStr(op query.Operator) string {
