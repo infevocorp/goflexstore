@@ -53,14 +53,30 @@ func colFromTag(f reflect.StructField) string {
 	return tag
 }
 
+// initScanTarget prepares a DTO variable for sqlx scanning.
+// Pass &dto; if DTO is already a pointer type, it allocates the inner struct,
+// sets dto to point to it, and returns a *InnerStruct suitable for sqlx.
+// If DTO is a plain struct, it returns dtoPtr unchanged (*DTO).
+func initScanTarget(dtoPtr any) any {
+	rv := reflect.ValueOf(dtoPtr).Elem()
+	if rv.Kind() == reflect.Ptr {
+		inner := reflect.New(rv.Type().Elem())
+		rv.Set(inner)
+		return inner.Interface()
+	}
+	return dtoPtr
+}
+
 // setPKField sets the primary-key column field on a struct (passed by pointer)
 // to the given int64 id, handling int and uint field kinds.
 func setPKField(row any, pkCol string, id int64) {
 	rv := reflect.ValueOf(row)
-	if rv.Kind() != reflect.Ptr {
+	for rv.Kind() == reflect.Ptr {
+		rv = rv.Elem()
+	}
+	if rv.Kind() != reflect.Struct {
 		return
 	}
-	rv = rv.Elem()
 	rt := rv.Type()
 
 	for i := 0; i < rt.NumField(); i++ {

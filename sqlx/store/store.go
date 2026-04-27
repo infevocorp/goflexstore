@@ -90,7 +90,8 @@ func (s *Store[Entity, DTO, ID]) Get(ctx context.Context, params ...query.Param)
 	sqlStr = db.Rebind(sqlStr)
 
 	var dto DTO
-	if err := sqlx.GetContext(ctx, db, &dto, sqlStr, args...); err != nil {
+	scanDest := initScanTarget(&dto)
+	if err := sqlx.GetContext(ctx, db, scanDest, sqlStr, args...); err != nil {
 		if stderrs.Is(err, sql.ErrNoRows) {
 			return *new(Entity), store.ErrorNotFound
 		}
